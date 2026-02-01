@@ -35,7 +35,10 @@
           <a href="gallery.html">Galerie</a>
           <a href="ucty.html" data-role="admin" hidden>Účty</a>
           <a href="ucetnictvi.html" data-role="admin" hidden>Účetnictví</a>
-          <a class="active" href="admin.html" data-role="admin" hidden>Správa</a>
+          <a class="active" href="admin.html" data-role="admin" hidden>
+            Správa
+            <span class="badge badge--danger" id="rentalBadge" hidden>0</span>
+          </a>
           <button class="btn btn--ghost" id="openRoleLogin" type="button">Přihlásit</button>
           <button class="btn btn--ghost" id="logoutRole" type="button" hidden>Odhlásit</button>
           <span class="role-status" id="roleStatus" hidden></span>
@@ -149,6 +152,27 @@
               </div>
               <div class="edit-tools">
                 <a class="btn btn--outline" href="ucty.html">Otevřít účty</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="card card--wide">
+            <div class="accounting__header">
+              <div>
+                <h4>Žádosti o pronájem</h4>
+                <p class="muted">Nové žádosti o pronájem klubovny.</p>
+              </div>
+              <div class="edit-tools">
+                <span class="badge badge--danger" id="rentalCount">0</span>
+              </div>
+            </div>
+            <div class="audit-log" id="rentalList"></div>
+            <div class="announcement-form" style="margin-top: 18px;">
+              <label for="rentalWebhook">Discord webhook (volitelné)</label>
+              <input id="rentalWebhook" type="url" placeholder="https://discord.com/api/webhooks/..." />
+              <div class="announcement-actions">
+                <button class="btn btn--outline" id="saveRentalWebhook" type="button">Uložit webhook</button>
+                <span class="muted">Pokud je vyplněno, žádosti se pošlou i na Discord.</span>
               </div>
             </div>
           </div>

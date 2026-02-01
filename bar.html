@@ -120,7 +120,7 @@
           <h2>Pravidla a kodex</h2>
           <p>Klubovna je posvátným místem všech motorkářů, proto se její pravidla musí přísně dodržovat a zachovat tím klid a pořádek.</p>
         </div>
-        <div class="grid grid--2">
+          <div class="grid grid--2">
           <article class="card">
             <h3>Vzájemný respekt</h3>
             <p>
@@ -171,16 +171,19 @@
           </article>
           <article class="card">
             <h3>Rezervační formulář</h3>
-            <form class="form">
+            <form class="form" id="rentalForm">
               <label for="eventName">Název akce</label>
               <input id="eventName" type="text" placeholder="Např. Oslava povýšení" />
               <label for="eventDate">Datum</label>
               <input id="eventDate" type="date" />
               <label for="eventSize">Počet osob</label>
               <input id="eventSize" type="number" min="10" max="120" placeholder="40" />
+              <label for="eventContact">Kontakt</label>
+              <input id="eventContact" type="text" placeholder="Telefon / E-Mail" />
               <label for="eventNotes">Poznámka</label>
               <input id="eventNotes" type="text" placeholder="Speciální požadavky" />
-              <button class="btn" type="button">Odeslat poptávku</button>
+              <button class="btn" id="rentalSubmit" type="submit">Odeslat žádost</button>
+              <p class="muted" id="rentalStatus" role="status" aria-live="polite"></p>
             </form>
           </article>
         </div>

@@ -102,6 +102,8 @@ const ANNOUNCEMENTS_KEY = "soa_announcements";
 const BANNER_KEY = "soa_banner_notice";
 const GALLERY_KEY = "soa_gallery_items";
 const ACCOUNTS_KEY = "soa_accounts";
+const RENTAL_KEY = "soa_rental_requests";
+const RENTAL_WEBHOOK_KEY = "soa_rental_webhook";
 const hydrateFromFirebase = async () => {
   if (!firebaseEnabled) return;
   const keys = [
@@ -113,6 +115,8 @@ const hydrateFromFirebase = async () => {
     BANNER_KEY,
     GALLERY_KEY,
     ACCOUNTS_KEY,
+    RENTAL_KEY,
+    RENTAL_WEBHOOK_KEY,
   ];
   const results = await Promise.all(
     keys.map(async (key) => {
@@ -169,6 +173,19 @@ const bannerTitle = document.getElementById("bannerTitle");
 const bannerMessage = document.getElementById("bannerMessage");
 const bannerActive = document.getElementById("bannerActive");
 const saveBanner = document.getElementById("saveBanner");
+const rentalForm = document.getElementById("rentalForm");
+const rentalSubmit = document.getElementById("rentalSubmit");
+const eventName = document.getElementById("eventName");
+const eventDate = document.getElementById("eventDate");
+const eventSize = document.getElementById("eventSize");
+const eventContact = document.getElementById("eventContact");
+const eventNotes = document.getElementById("eventNotes");
+const rentalStatus = document.getElementById("rentalStatus");
+const rentalList = document.getElementById("rentalList");
+const rentalCount = document.getElementById("rentalCount");
+const rentalBadge = document.getElementById("rentalBadge");
+const rentalWebhook = document.getElementById("rentalWebhook");
+const saveRentalWebhookButton = document.getElementById("saveRentalWebhook");
 const accountName = document.getElementById("accountName");
 const accountRole = document.getElementById("accountRole");
 const accountActivity = document.getElementById("accountActivity");
@@ -264,8 +281,11 @@ const setRole = (role, name = "") => {
   updateRoleUI();
 };
 
+const getCurrentRole = () => sessionStorage.getItem(ROLE_KEY) || "";
+const isAdminRole = () => getCurrentRole() === "admin";
+
 const updateRoleUI = () => {
-  const role = sessionStorage.getItem(ROLE_KEY);
+  const role = getCurrentRole();
   roleLinks.forEach((link) => {
     const required = link.dataset.role;
     const allow = role === required || (required === "member" && role === "admin");
@@ -296,7 +316,7 @@ const updateRoleUI = () => {
     if (accountManagementContent) accountManagementContent.hidden = false;
     if (accountManagementLock) accountManagementLock.hidden = true;
   } else if (role === "member") {
-    lockAccounting();
+    unlockAccounting();
     unlockMemberArea();
     if (accountManagementContent) accountManagementContent.hidden = true;
     if (accountManagementLock) accountManagementLock.hidden = false;
@@ -307,6 +327,23 @@ const updateRoleUI = () => {
     if (accountManagementLock) accountManagementLock.hidden = false;
   }
 
+  applyAccountingAccess(role);
+
+};
+
+const applyAccountingAccess = (role) => {
+  const adminOnly = document.querySelectorAll("[data-access='admin']");
+  adminOnly.forEach((node) => {
+    node.hidden = role !== "admin";
+  });
+
+  if (editToggle) editToggle.hidden = role !== "admin";
+  if (saveEdits) saveEdits.hidden = role !== "admin";
+  if (resetEdits) resetEdits.hidden = role !== "admin";
+
+  if (role !== "admin") setEditingState(false);
+
+  renderTransactions(role !== "admin");
 };
 
 const getDisplayNameForRole = (role) => {
@@ -492,8 +529,6 @@ if (sessionStorage.getItem(STORAGE_KEY) === "true") {
   unlockAccounting();
 }
 
-updateRoleUI();
-
 if (navLinks.length) {
   const observer = new IntersectionObserver(
     (entries) => {
@@ -559,58 +594,80 @@ const saveEditsToStorage = () => {
         approve: cells[8]?.textContent?.trim() || "",
       };
     });
-    localStorage.setItem(TX_KEY, JSON.stringify(rows));
-    if (firebaseEnabled) firebaseStore.setDocValue(TX_KEY, rows).catch(() => {});
+    saveTransactions(rows);
   }
 };
 
 loadEdits();
 
-const loadTransactions = () => {
-  if (!transactionBody) return;
+const getStoredTransactions = () => {
   const stored = localStorage.getItem(TX_KEY);
-  if (!stored) return;
+  if (!stored) return [];
   try {
     const rows = JSON.parse(stored);
-    if (!Array.isArray(rows)) return;
-    transactionBody.innerHTML = "";
-    rows.forEach((row, index) => {
-      const id = `t${index}-${Date.now()}`;
-      const tr = document.createElement("tr");
-      const sectionType = getSectionType(row.section || "");
-      tr.innerHTML = `
-        <td class="editable" data-editable-key="${id}-date">${row.date}</td>
-        <td class="editable" data-editable-key="${id}-desc">${row.desc || ""}</td>
-        <td class="editable" data-editable-key="${id}-section">${row.section || "Charter"}</td>
-        <td class="editable" data-editable-key="${id}-type">${row.type}</td>
-        <td>
-          ${buildItemCellContent(sectionType, row.item || "")}
-        </td>
-        <td><input class="qty-input" type="number" min="0" value="${row.qty || 0}" data-qty-input /></td>
-        <td class="editable" data-editable-key="${id}-amount">${row.amount}</td>
-        <td class="editable" data-editable-key="${id}-entered">${row.enteredBy || "Admin"}</td>
-        <td class="editable" data-editable-key="${id}-approve">${row.approve}</td>
-      `;
-      transactionBody.appendChild(tr);
-    });
+    return Array.isArray(rows) ? rows : [];
   } catch {
     localStorage.removeItem(TX_KEY);
+    return [];
   }
 };
 
-loadTransactions();
-if (transactionBody) {
+const saveTransactions = (rows) => {
+  localStorage.setItem(TX_KEY, JSON.stringify(rows));
+  if (firebaseEnabled) firebaseStore.setDocValue(TX_KEY, rows).catch(() => {});
+};
+
+const buildTransactionRow = (row, readOnly = false, index = 0) => {
+  const id = `t${index}-${Date.now()}`;
+  const tr = document.createElement("tr");
+  tr.dataset.readonly = readOnly ? "true" : "false";
+  const sectionValue = row.section || "Charter";
+  const sectionType = getSectionType(sectionValue);
+  const editableCell = (key, value) =>
+    readOnly
+      ? `<td>${value || ""}</td>`
+      : `<td class="editable" data-editable-key="${id}-${key}">${value || ""}</td>`;
+  const qtyValue = Number(row.qty || 0);
+  const qtyInput = readOnly
+    ? `<input class="qty-input" type="number" min="0" value="${qtyValue}" data-qty-input disabled />`
+    : `<input class="qty-input" type="number" min="0" value="${qtyValue}" data-qty-input />`;
+
+  tr.innerHTML = `
+    ${editableCell("date", row.date)}
+    ${editableCell("desc", row.desc)}
+    ${editableCell("section", sectionValue)}
+    ${editableCell("type", row.type)}
+    <td>
+      ${buildItemCellContent(sectionType, row.item || "", readOnly)}
+    </td>
+    <td>${qtyInput}</td>
+    ${editableCell("amount", row.amount)}
+    ${editableCell("entered", row.enteredBy || "Admin")}
+    ${editableCell("approve", row.approve)}
+  `;
+  return tr;
+};
+
+const renderTransactions = (readOnly = false) => {
+  if (!transactionBody) return;
+  const rows = getStoredTransactions();
+  transactionBody.innerHTML = "";
+  rows.forEach((row, index) => {
+    transactionBody.appendChild(buildTransactionRow(row, readOnly, index));
+  });
   Array.from(transactionBody.querySelectorAll("tr")).forEach((row) => {
     updateItemCellForRow(row);
   });
-}
+};
 
 editToggle?.addEventListener("click", () => {
+  if (!isAdminRole()) return;
   const isEditing = getEditableNodes()[0]?.isContentEditable;
   setEditingState(!isEditing);
 });
 
 saveEdits?.addEventListener("click", () => {
+  if (!isAdminRole()) return;
   saveEditsToStorage();
   addAudit("Uloženy změny v účetnictví");
   setEditingState(false);
@@ -618,6 +675,7 @@ saveEdits?.addEventListener("click", () => {
 });
 
 resetEdits?.addEventListener("click", () => {
+  if (!isAdminRole()) return;
   localStorage.removeItem(EDITS_KEY);
   localStorage.removeItem(TX_KEY);
   if (firebaseEnabled) {
@@ -782,9 +840,10 @@ const getItemValueFromRow = (row) => {
   return select?.value || input?.value || "";
 };
 
-const buildItemCellContent = (sectionType, itemValue) => {
+const buildItemCellContent = (sectionType, itemValue, readOnly = false) => {
   if (sectionType === "charter") {
-    return `<input class="item-input" type="text" data-item-input placeholder="Popis platby" value="${itemValue || ""}" />`;
+    const readonlyAttr = readOnly ? "readonly disabled" : "";
+    return `<input class="item-input" type="text" data-item-input placeholder="Popis platby" value="${itemValue || ""}" ${readonlyAttr} />`;
   }
   const items = sectionType === "workshop" ? WORKSHOP_ITEMS : MENU_ITEMS;
   const options = ["—", ...items]
@@ -793,7 +852,8 @@ const buildItemCellContent = (sectionType, itemValue) => {
       return `<option value="${item}" ${selected}>${item}</option>`;
     })
     .join("");
-  return `<select class="item-select" data-item-select>${options}</select>`;
+  const disabledAttr = readOnly ? "disabled" : "";
+  return `<select class="item-select" data-item-select ${disabledAttr}>${options}</select>`;
 };
 
 const updateItemCellForRow = (row) => {
@@ -801,10 +861,13 @@ const updateItemCellForRow = (row) => {
   const sectionCell = row.children[2];
   const itemCell = row.children[4];
   if (!sectionCell || !itemCell) return;
+  const readOnly = row.dataset.readonly === "true";
   const sectionType = getSectionType(sectionCell.textContent);
   const currentValue = getItemValueFromRow(row);
-  itemCell.innerHTML = buildItemCellContent(sectionType, currentValue);
+  itemCell.innerHTML = buildItemCellContent(sectionType, currentValue, readOnly);
 };
+
+updateRoleUI();
 
 const updateModalItemControl = () => {
   if (!txSection) return;
@@ -954,6 +1017,100 @@ const getBanner = () => {
 const saveBannerToStorage = (banner) => {
   localStorage.setItem(BANNER_KEY, JSON.stringify(banner));
   if (firebaseEnabled) firebaseStore.setDocValue(BANNER_KEY, banner).catch(() => {});
+};
+
+const getRentalRequests = () => {
+  const stored = localStorage.getItem(RENTAL_KEY);
+  if (!stored) return [];
+  try {
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    localStorage.removeItem(RENTAL_KEY);
+    return [];
+  }
+};
+
+const saveRentalRequests = (items) => {
+  localStorage.setItem(RENTAL_KEY, JSON.stringify(items));
+  if (firebaseEnabled) firebaseStore.setDocValue(RENTAL_KEY, items).catch(() => {});
+};
+
+const getRentalWebhook = () => {
+  return localStorage.getItem(RENTAL_WEBHOOK_KEY) || "";
+};
+
+const saveRentalWebhook = (url) => {
+  const trimmed = url?.trim() || "";
+  if (trimmed) {
+    localStorage.setItem(RENTAL_WEBHOOK_KEY, trimmed);
+    if (firebaseEnabled) firebaseStore.setDocValue(RENTAL_WEBHOOK_KEY, trimmed).catch(() => {});
+  } else {
+    localStorage.removeItem(RENTAL_WEBHOOK_KEY);
+    if (firebaseEnabled) firebaseStore.setDocValue(RENTAL_WEBHOOK_KEY, "").catch(() => {});
+  }
+};
+
+const renderRentalRequests = () => {
+  const requests = getRentalRequests();
+  const pending = requests.filter((req) => req.status !== "done");
+  const count = pending.length;
+  if (rentalCount) rentalCount.textContent = String(count);
+  if (rentalBadge) {
+    rentalBadge.hidden = count === 0;
+    rentalBadge.textContent = String(count);
+  }
+
+  if (rentalList) {
+    rentalList.innerHTML = requests.length
+      ? requests
+          .map(
+            (req) => `
+              <div class="audit-item" data-rental-id="${req.id}">
+                <span>
+                  ${req.name || "(bez názvu)"} · ${req.date || "bez data"} · ${req.size || "?"} osob · ${req.contact || "bez kontaktu"}
+                </span>
+                <small>${req.notes || "Bez poznámky"}</small>
+                <div class="announcement-actions" style="margin-top: 8px;">
+                  <button class="btn btn--outline" type="button" data-action="resolve">Vyřídit</button>
+                </div>
+              </div>
+            `
+          )
+          .join("")
+      : "<p class=\"muted\">Žádné žádosti o pronájem.</p>";
+  }
+};
+
+const sendRentalWebhook = async (request) => {
+  const url = getRentalWebhook();
+  if (!url) return;
+  const payload = {
+    content: "",
+    embeds: [
+      {
+        title: "Nová žádost o pronájem",
+        color: 12619602,
+        fields: [
+          { name: "Akce", value: request.name || "(bez názvu)", inline: false },
+          { name: "Datum", value: request.date || "bez data", inline: true },
+          { name: "Počet osob", value: String(request.size || "?"), inline: true },
+          { name: "Kontakt", value: request.contact || "bez kontaktu", inline: false },
+          { name: "Poznámka", value: request.notes || "Bez poznámky", inline: false },
+        ],
+        footer: { text: `Sons of Anarchy · ${new Date(request.createdAt).toLocaleString("cs-CZ")}` },
+      },
+    ],
+  };
+  try {
+    await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    // ignore webhook errors
+  }
 };
 
 const seedBanner = () => {
@@ -1219,6 +1376,7 @@ const updateRowAmount = (row) => {
 };
 
 transactionBody?.addEventListener("input", (event) => {
+  if (!isAdminRole()) return;
   const row = event.target.closest("tr");
   if (event.target.matches("[data-editable-key$='-section']")) {
     updateItemCellForRow(row);
@@ -1230,6 +1388,7 @@ transactionBody?.addEventListener("input", (event) => {
 });
 
 transactionBody?.addEventListener("change", (event) => {
+  if (!isAdminRole()) return;
   const row = event.target.closest("tr");
   if (event.target.matches("[data-editable-key$='-section']")) {
     updateItemCellForRow(row);
@@ -1278,6 +1437,7 @@ txSection?.addEventListener("change", () => {
 transactionForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   if (!transactionBody) return;
+  if (!getCurrentRole()) return;
   const id = `t${Date.now()}`;
   const sectionValue = txSection?.value || "Charter";
   const sectionType = getSectionType(sectionValue);
@@ -1290,22 +1450,28 @@ transactionForm?.addEventListener("submit", (event) => {
     ? (txAmount?.value?.trim() || "")
     : formatCurrency(signed);
 
-  const row = document.createElement("tr");
-  row.innerHTML = `
-    <td class="editable" data-editable-key="${id}-date">${txDate?.value || ""}</td>
-    <td class="editable" data-editable-key="${id}-desc">${txDesc?.value || ""}</td>
-    <td class="editable" data-editable-key="${id}-section">${sectionValue}</td>
-    <td class="editable" data-editable-key="${id}-type">${txType?.value || "Příjem"}</td>
-    <td>
-      ${buildItemCellContent(sectionType, itemValue)}
-    </td>
-    <td><input class="qty-input" type="number" min="0" value="${qty}" data-qty-input /></td>
-    <td class="editable" data-editable-key="${id}-amount">${amountText}</td>
-    <td class="editable" data-editable-key="${id}-entered">${txEntered?.value || "Admin"}</td>
-    <td class="editable" data-editable-key="${id}-approve">${txApprove?.value || "Admin"}</td>
-  `;
+  const roleName = sessionStorage.getItem(ROLE_NAME_KEY) || (isAdminRole() ? "Admin" : "Člen");
+  const transaction = {
+    date: txDate?.value || "",
+    desc: txDesc?.value || "",
+    section: sectionValue,
+    type: txType?.value || "Příjem",
+    item: itemValue || "—",
+    qty,
+    amount: amountText,
+    enteredBy: txEntered?.value || roleName,
+    approve: txApprove?.value || (isAdminRole() ? roleName : "—"),
+  };
+
+  const existing = getStoredTransactions();
+  existing.unshift(transaction);
+  saveTransactions(existing);
+
+  const row = buildTransactionRow(transaction, !isAdminRole(), 0);
   transactionBody.prepend(row);
-  setEditingState(true);
+  updateItemCellForRow(row);
+
+  if (isAdminRole()) setEditingState(true);
   addAudit("Přidána nová transakce");
   recalcTotals();
   transactionModal?.classList.remove("show");
@@ -1511,6 +1677,53 @@ saveBanner?.addEventListener("click", () => {
   localStorage.removeItem("soa_notice_hidden");
   renderBanner();
   addAudit("Uloženo oznámení v liště");
+});
+
+saveRentalWebhookButton?.addEventListener("click", () => {
+  const url = rentalWebhook?.value || "";
+  saveRentalWebhook(url);
+  if (rentalWebhook) rentalWebhook.value = getRentalWebhook();
+  addAudit("Uložen Discord webhook pro pronájmy");
+});
+
+rentalForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!eventName || !eventDate || !eventSize || !eventContact) return;
+  const name = eventName.value.trim();
+  const date = eventDate.value;
+  const size = Number(eventSize.value || 0);
+  const contact = eventContact.value.trim();
+  const notes = eventNotes?.value.trim() || "";
+
+  if (!name || !date || !size || !contact) {
+    if (rentalStatus) rentalStatus.textContent = "Vyplň název, datum, počet osob a kontakt.";
+    return;
+  }
+
+  const request = {
+    id: `r${Date.now()}`,
+    name,
+    date,
+    size,
+    contact,
+    notes,
+    status: "new",
+    createdAt: new Date().toISOString(),
+  };
+
+  const existing = getRentalRequests();
+  existing.unshift(request);
+  saveRentalRequests(existing);
+  renderRentalRequests();
+  sendRentalWebhook(request);
+  addAudit("Nová žádost o pronájem");
+
+  eventName.value = "";
+  eventDate.value = "";
+  eventSize.value = "";
+  eventContact.value = "";
+  if (eventNotes) eventNotes.value = "";
+  if (rentalStatus) rentalStatus.textContent = "Žádost byla odeslaná. Ozveme se.";
 });
 
 closeNotice?.addEventListener("click", () => {
@@ -1783,6 +1996,8 @@ renderBanner();
 renderAccounts();
 loadBannerForm();
 updateModalItemControl();
+renderRentalRequests();
+if (rentalWebhook) rentalWebhook.value = getRentalWebhook();
 
 hydrateFromFirebase().then(() => {
   loadEdits();
@@ -1798,8 +2013,23 @@ hydrateFromFirebase().then(() => {
   renderAccounts();
   loadBannerForm();
   updateModalItemControl();
+  renderRentalRequests();
+  if (rentalWebhook) rentalWebhook.value = getRentalWebhook();
   recalcTotals();
   renderInventory();
+});
+
+rentalList?.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-action='resolve']");
+  if (!button) return;
+  const row = button.closest("[data-rental-id]");
+  if (!row) return;
+  const id = row.dataset.rentalId;
+  const items = getRentalRequests();
+  const updated = items.map((item) => (item.id === id ? { ...item, status: "done" } : item));
+  saveRentalRequests(updated);
+  renderRentalRequests();
+  addAudit("Vyřízena žádost o pronájem");
 });
 
 const menuGrid = document.getElementById("menuGrid");

@@ -34,7 +34,7 @@
           <a href="members.html" data-role="member" hidden>Members</a>
           <a href="gallery.html">Galerie</a>
           <a href="ucty.html" data-role="admin" hidden>Účty</a>
-          <a class="active" href="ucetnictvi.html" data-role="admin" hidden>Účetnictví</a>
+          <a class="active" href="ucetnictvi.html" data-role="member" hidden>Účetnictví</a>
           <a href="admin.html" data-role="admin" hidden>Správa</a>
           <button class="btn btn--ghost" id="openRoleLogin" type="button">Přihlásit</button>
           <button class="btn btn--ghost" id="logoutRole" type="button" hidden>Odhlásit</button>
@@ -61,13 +61,13 @@
       <section class="section">
         <div class="section__header">
           <h2>Účetnictví</h2>
-          <p>Pro zobrazení obsahu je nutné ověření admin heslem.</p>
+          <p>Pro zobrazení obsahu je nutné ověření členským nebo admin heslem.</p>
         </div>
 
         <div class="lock" id="accountingLock">
           <div class="lock__content">
             <h3>Přístup uzamčen</h3>
-            <p>Admin sekce není veřejná. Ověř se pro pokračování.</p>
+            <p>Interní sekce není veřejná. Ověř se pro pokračování.</p>
             <button class="btn" id="openLogin2" type="button">Odemknout</button>
           </div>
         </div>
@@ -78,125 +78,127 @@
               <h3>Klubové finance</h3>
               <p class="muted">Aktualizováno: leden 2026</p>
             </div>
-            <div class="edit-tools">
+            <div class="edit-tools" data-access="admin">
               <button class="btn btn--ghost" id="toggleEdit" type="button">Editovat</button>
               <button class="btn" id="saveEdits" type="button">Uložit změny</button>
               <button class="btn btn--ghost" id="logout" type="button">Odhlásit</button>
             </div>
           </div>
 
-          <div class="section__header" style="margin-top: 12px;">
-            <h3>Celkové finanční toky</h3>
-            <p class="muted">Souhrn příjmů, výdajů a čistého výsledku za období.</p>
-          </div>
-          <div class="grid grid--3">
-            <article class="card">
-              <h4>Celkové příjmy</h4>
-              <p class="big" data-total="income">$ 84 500</p>
-              <p class="muted editable" data-editable-key="incomeNote">Eventy · Členství · Merch</p>
-            </article>
-            <article class="card">
-              <h4>Celkové výdaje</h4>
-              <p class="big" data-total="expenses">$ 52 900</p>
-              <p class="muted editable" data-editable-key="expensesNote">Servis · Pronájmy · Cesty</p>
-            </article>
-            <article class="card">
-              <h4>Čistý výsledek</h4>
-              <p class="big" data-total="reserve">$ 31 600</p>
-              <p class="muted editable" data-editable-key="reserveNote">Bezpečný polštář na sezónu</p>
-            </article>
-          </div>
-
-          <div class="flow-bars">
-            <div class="flow-bar">
-              <span>Celkové příjmy</span>
-              <div class="bar"><span data-flow="income"></span></div>
+          <div data-access="admin">
+            <div class="section__header" style="margin-top: 12px;">
+              <h3>Celkové finanční toky</h3>
+              <p class="muted">Souhrn příjmů, výdajů a čistého profitu za období.</p>
             </div>
-            <div class="flow-bar">
-              <span>Celkové výdaje</span>
-              <div class="bar"><span data-flow="expenses"></span></div>
+            <div class="grid grid--3">
+              <article class="card">
+                <h4>Celkové příjmy</h4>
+                <p class="big" data-total="income">$ 84 500</p>
+                <p class="muted editable" data-editable-key="incomeNote">Akce · Členství · Podniky</p>
+              </article>
+              <article class="card">
+                <h4>Celkové výdaje</h4>
+                <p class="big" data-total="expenses">$ 52 900</p>
+                <p class="muted editable" data-editable-key="expensesNote">Servis · Pronájmy · Cesty</p>
+              </article>
+              <article class="card">
+                <h4>Čistý profit</h4>
+                <p class="big" data-total="reserve">$ 31 600</p>
+                <p class="muted editable" data-editable-key="reserveNote">Bezpečný polštář na sezónu</p>
+              </article>
             </div>
-            <div class="flow-bar">
-              <span>Čistý výsledek</span>
-              <div class="bar"><span data-flow="net"></span></div>
+
+            <div class="flow-bars">
+              <div class="flow-bar">
+                <span>Celkové příjmy</span>
+                <div class="bar"><span data-flow="income"></span></div>
+              </div>
+              <div class="flow-bar">
+                <span>Celkové výdaje</span>
+                <div class="bar"><span data-flow="expenses"></span></div>
+              </div>
+              <div class="flow-bar">
+                <span>Čistý profit</span>
+                <div class="bar"><span data-flow="net"></span></div>
+              </div>
             </div>
-          </div>
 
-          <div class="section__header" style="margin-top: 28px;">
-            <h3>BAR – provozní finance</h3>
-            <p class="muted">Denní tržby, eventy, catering a provoz klubu.</p>
-          </div>
-          <div class="grid grid--3">
-            <article class="card">
-              <h4>Bar příjmy</h4>
-              <p class="big" data-total="bar-income">$ 0</p>
-              <p class="muted">Drink menu · eventy · pronájmy</p>
-            </article>
-            <article class="card">
-              <h4>Bar výdaje</h4>
-              <p class="big" data-total="bar-expenses">$ 0</p>
-              <p class="muted">Zásoby · personál · hudba</p>
-            </article>
-            <article class="card">
-              <h4>Bar čistý výsledek</h4>
-              <p class="big" data-total="bar-net">$ 0</p>
-              <p class="muted">Provozní zůstatek</p>
-            </article>
-          </div>
+            <div class="section__header" style="margin-top: 28px;">
+              <h3>BAR – občerstvení a pronájem</h3>
+              <p class="muted">Denní tržby, pronájmy a akce.</p>
+            </div>
+            <div class="grid grid--3">
+              <article class="card">
+                <h4>Bar příjmy</h4>
+                <p class="big" data-total="bar-income">$ 0</p>
+                <p class="muted">Občerstvení · eventy · pronájmy</p>
+              </article>
+              <article class="card">
+                <h4>Bar výdaje</h4>
+                <p class="big" data-total="bar-expenses">$ 0</p>
+                <p class="muted">Zásoby · personál · licence</p>
+              </article>
+              <article class="card">
+                <h4>Profit baru</h4>
+                <p class="big" data-total="bar-net">$ 0</p>
+                <p class="muted">Provozní zůstatek</p>
+              </article>
+            </div>
 
-          <div class="section__header" style="margin-top: 28px;">
-            <h3>DÍLNA – servis & custom</h3>
-            <p class="muted">Servisní práce, díly, logistika a custom buildy.</p>
-          </div>
-          <div class="grid grid--3">
-            <article class="card">
-              <h4>Dílna příjmy</h4>
-              <p class="big" data-total="workshop-income">$ 0</p>
-              <p class="muted">Servis · custom · tuning</p>
-            </article>
-            <article class="card">
-              <h4>Dílna výdaje</h4>
-              <p class="big" data-total="workshop-expenses">$ 0</p>
-              <p class="muted">Díly · nástroje · lakovna</p>
-            </article>
-            <article class="card">
-              <h4>Dílna čistý výsledek</h4>
-              <p class="big" data-total="workshop-net">$ 0</p>
-              <p class="muted">Provozní zůstatek</p>
-            </article>
-          </div>
+            <div class="section__header" style="margin-top: 28px;">
+              <h3>DÍLNA – servis & tuning</h3>
+              <p class="muted">Tuning vozidel, jejich opravy a drobné úpravy.</p>
+            </div>
+            <div class="grid grid--3">
+              <article class="card">
+                <h4>Dílna příjmy</h4>
+                <p class="big" data-total="workshop-income">$ 0</p>
+                <p class="muted">Servis · lakovna · tuning</p>
+              </article>
+              <article class="card">
+                <h4>Dílna výdaje</h4>
+                <p class="big" data-total="workshop-expenses">$ 0</p>
+                <p class="muted">Díly · nástroje · výplaty</p>
+              </article>
+              <article class="card">
+                <h4>Dílna profit</h4>
+                <p class="big" data-total="workshop-net">$ 0</p>
+                <p class="muted">Provozní zůstatek</p>
+              </article>
+            </div>
 
-          <div class="section__header" style="margin-top: 28px;">
-            <h3>Charter & komunitní finance</h3>
-            <p class="muted">Členství, merch, charita a klubový fond.</p>
-          </div>
-          <div class="grid grid--3">
-            <article class="card">
-              <h4>Charter příjmy</h4>
-              <p class="big" data-total="charter-income">$ 0</p>
-              <p class="muted">Členství · merch · akce</p>
-            </article>
-            <article class="card">
-              <h4>Charter výdaje</h4>
-              <p class="big" data-total="charter-expenses">$ 0</p>
-              <p class="muted">Cesty · právní servis · eventy</p>
-            </article>
-            <article class="card">
-              <h4>Charter čistý výsledek</h4>
-              <p class="big" data-total="charter-net">$ 0</p>
-              <p class="muted">Finanční zdraví charteru</p>
-            </article>
+            <div class="section__header" style="margin-top: 28px;">
+              <h3>Jiné druhy příjmu</h3>
+              <p class="muted">Členství, dary, apod.</p>
+            </div>
+            <div class="grid grid--3">
+              <article class="card">
+                <h4>Příjmy klubu</h4>
+                <p class="big" data-total="charter-income">$ 0</p>
+                <p class="muted">Členství · dary · akce</p>
+              </article>
+              <article class="card">
+                <h4>Výdaje klubu</h4>
+                <p class="big" data-total="charter-expenses">$ 0</p>
+                <p class="muted">Povinné platby · daně · licence</p>
+              </article>
+              <article class="card">
+                <h4>Profit klubovny</h4>
+                <p class="big" data-total="charter-net">$ 0</p>
+                <p class="muted">Finanční zdraví klubovny</p>
+              </article>
+            </div>
           </div>
 
           <div class="card card--wide">
-            <h4>Nejvýkonnější účet (podle zadání transakcí)</h4>
+            <h4>Nejvýdělečnější zaměstnanec</h4>
             <div class="top-performer">
               <div>
-                <p class="muted">Top účet</p>
+                <p class="muted">Největší zisk:</p>
                 <p class="big" id="topEarnerName">—</p>
               </div>
               <div>
-                <p class="muted">Přínos na příjmech</p>
+                <p class="muted">Celkový zisk:</p>
                 <p class="big" id="topEarnerAmount">$ 0</p>
               </div>
             </div>
@@ -215,7 +217,7 @@
                   <th>Popis</th>
                   <th>Sekce</th>
                   <th>Typ</th>
-                  <th>Menu item</th>
+                  <th>Položka/th>
                   <th>Ks</th>
                   <th>Částka</th>
                   <th>Zadal</th>
@@ -227,81 +229,83 @@
             </table>
           </div>
 
-          <div class="section__header" style="margin-top: 28px;">
-            <h3>Sklad věcí</h3>
-            <p class="muted">Skladové zásoby se automaticky snižují podle barových prodejů.</p>
-          </div>
-          <div class="card card--wide">
-            <div class="inventory-grid">
-              <div class="inventory-alerts" id="inventoryAlerts"></div>
-              <div>
-                <table class="inventory-table">
-                  <thead>
-                    <tr>
-                      <th>Položka</th>
-                      <th>Naskladněno</th>
-                      <th>Prodáno</th>
-                      <th>Aktuálně</th>
-                    </tr>
-                  </thead>
-                  <tbody id="inventoryBody"></tbody>
-                </table>
-              </div>
-              <div class="inventory-form">
-                <h4>Dodání na sklad</h4>
-                <label for="inventoryItem">Položka</label>
-                <select id="inventoryItem">
-                  <option value="Casamigos">Casamigos</option>
-                  <option value="Rum">Rum</option>
-                  <option value="Whisky">Whisky</option>
-                  <option value="Tequila">Tequila</option>
-                  <option value="Brugal">Brugal</option>
-                  <option value="Gin">Gin</option>
-                  <option value="Vodka">Vodka</option>
-                  <option value="Amaretto">Amaretto</option>
-                  <option value="Pißwasser (tmavé)">Pißwasser (tmavé)</option>
-                  <option value="Pussywasser (svetlé)">Pussywasser (svetlé)</option>
-                  <option value="Pißwasser ICE (svetlé)">Pißwasser ICE (svetlé)</option>
-                  <option value="Pißwasser NEIN (svetlé)">Pißwasser NEIN (svetlé)</option>
-                  <option value="Dusche Gold (12)">Dusche Gold (12)</option>
-                  <option value="Logger (11)">Logger (11)</option>
-                  <option value="Pißwasser (10)">Pißwasser (10)</option>
-                  <option value="A.M Beer (11)">A.M Beer (11)</option>
-                  <option value="Red Bull">Red Bull</option>
-                  <option value="Pomarančový džus">Pomarančový džus</option>
-                  <option value="Brusinkový džus">Brusinkový džus</option>
-                  <option value="Ananasový džus">Ananasový džus</option>
-                  <option value="Cola">Cola</option>
-                  <option value="Cola Zero">Cola Zero</option>
-                  <option value="Soda">Soda</option>
-                  <option value="Nachos">Nachos</option>
-                  <option value="Sendvič">Sendvič</option>
-                  <option value="Arašídy">Arašídy</option>
-                  <option value="Chipsy">Chipsy</option>
-                  <option value="Preclíky">Preclíky</option>
-                </select>
-                <label for="inventoryQty">Množství</label>
-                <input id="inventoryQty" type="number" min="1" value="12" />
-                <label for="inventoryDate">Datum dodání</label>
-                <input id="inventoryDate" type="date" />
-                <button class="btn" id="addInventory" type="button">Přidat dodávku</button>
+          <div data-access="admin">
+            <div class="section__header" style="margin-top: 28px;">
+              <h3>Sklad věcí</h3>
+              <p class="muted">Zásoby se zmenšují podle transakcíp>
+            </div>
+            <div class="card card--wide">
+              <div class="inventory-grid">
+                <div class="inventory-alerts" id="inventoryAlerts"></div>
+                <div>
+                  <table class="inventory-table">
+                    <thead>
+                      <tr>
+                        <th>Položka</th>
+                        <th>Naskladněno</th>
+                        <th>Prodáno</th>
+                        <th>Aktuálně</th>
+                      </tr>
+                    </thead>
+                    <tbody id="inventoryBody"></tbody>
+                  </table>
+                </div>
+                <div class="inventory-form">
+                  <h4>Dodání na sklad</h4>
+                  <label for="inventoryItem">Položka</label>
+                  <select id="inventoryItem">
+                    <option value="Casamigos">Casamigos</option>
+                    <option value="Rum">Rum</option>
+                    <option value="Whisky">Whisky</option>
+                    <option value="Tequila">Tequila</option>
+                    <option value="Brugal">Brugal</option>
+                    <option value="Gin">Gin</option>
+                    <option value="Vodka">Vodka</option>
+                    <option value="Amaretto">Amaretto</option>
+                    <option value="Pißwasser (tmavé)">Pißwasser (tmavé)</option>
+                    <option value="Pussywasser (svetlé)">Pussywasser (svetlé)</option>
+                    <option value="Pißwasser ICE (svetlé)">Pißwasser ICE (svetlé)</option>
+                    <option value="Pißwasser NEIN (svetlé)">Pißwasser NEIN (svetlé)</option>
+                    <option value="Dusche Gold (12)">Dusche Gold (12)</option>
+                    <option value="Logger (11)">Logger (11)</option>
+                    <option value="Pißwasser (10)">Pißwasser (10)</option>
+                    <option value="A.M Beer (11)">A.M Beer (11)</option>
+                    <option value="Red Bull">Red Bull</option>
+                    <option value="Pomarančový džus">Pomarančový džus</option>
+                    <option value="Brusinkový džus">Brusinkový džus</option>
+                    <option value="Ananasový džus">Ananasový džus</option>
+                    <option value="Cola">Cola</option>
+                    <option value="Cola Zero">Cola Zero</option>
+                    <option value="Soda">Soda</option>
+                    <option value="Nachos">Nachos</option>
+                    <option value="Sendvič">Sendvič</option>
+                    <option value="Arašídy">Arašídy</option>
+                    <option value="Chipsy">Chipsy</option>
+                    <option value="Preclíky">Preclíky</option>
+                  </select>
+                  <label for="inventoryQty">Množství</label>
+                  <input id="inventoryQty" type="number" min="1" value="12" />
+                  <label for="inventoryDate">Datum dodání</label>
+                  <input id="inventoryDate" type="date" />
+                  <button class="btn" id="addInventory" type="button">Přidat dodávku</button>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div class="grid grid--2">
-            <article class="card">
-              <h4>Interní poznámky</h4>
-              <p class="muted editable" data-editable-key="notes">
-                XXXX.
-              </p>
-            </article>
-            <article class="card">
-              <h4>Rizikové body</h4>
-              <p class="muted editable" data-editable-key="risk">
-                XXXXX.
-              </p>
-            </article>
+            <div class="grid grid--2">
+              <article class="card">
+                <h4>Interní poznámky</h4>
+                <p class="muted editable" data-editable-key="notes">
+                  XXXX.
+                </p>
+              </article>
+              <article class="card">
+                <h4>Rizikové body</h4>
+                <p class="muted editable" data-editable-key="risk">
+                  XXXXX.
+                </p>
+              </article>
+            </div>
           </div>
         </div>
       </section>
