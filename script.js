@@ -1683,7 +1683,10 @@ transactionForm?.addEventListener("submit", (event) => {
 });
 
 addDebt?.addEventListener("click", () => {
-  if (!isAdminRole()) return;
+  if (!isAdminRole()) {
+    showRoleModal();
+    return;
+  }
   openDebtModal();
 });
 
