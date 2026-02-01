@@ -123,6 +123,7 @@ const GALLERY_KEY = "soa_gallery_items";
 const ACCOUNTS_KEY = "soa_accounts";
 const RENTAL_KEY = "soa_rental_requests";
 const RENTAL_WEBHOOK_KEY = "soa_rental_webhook";
+const DEBTS_KEY = "soa_debts";
 const hydrateFromFirebase = async () => {
   if (!firebaseEnabled) return;
   const keys = [
@@ -136,6 +137,7 @@ const hydrateFromFirebase = async () => {
     ACCOUNTS_KEY,
     RENTAL_KEY,
     RENTAL_WEBHOOK_KEY,
+    DEBTS_KEY,
   ];
   const results = await Promise.all(
     keys.map(async (key) => {
@@ -232,6 +234,26 @@ const txQty = document.getElementById("txQty");
 const txAmount = document.getElementById("txAmount");
 const txEntered = document.getElementById("txEntered");
 const txApprove = document.getElementById("txApprove");
+const addDebt = document.getElementById("addDebt");
+const debtTableBody = document.getElementById("debtTableBody");
+const debtModal = document.getElementById("debtModal");
+const debtTitle = document.getElementById("debtTitle");
+const closeDebt = document.getElementById("closeDebt");
+const debtForm = document.getElementById("debtForm");
+const debtType = document.getElementById("debtType");
+const debtPerson = document.getElementById("debtPerson");
+const debtReason = document.getElementById("debtReason");
+const debtPrincipal = document.getElementById("debtPrincipal");
+const debtInterestRate = document.getElementById("debtInterestRate");
+const debtInterestAmount = document.getElementById("debtInterestAmount");
+const debtTotal = document.getElementById("debtTotal");
+const debtStartDate = document.getElementById("debtStartDate");
+const debtDueDate = document.getElementById("debtDueDate");
+const debtStatus = document.getElementById("debtStatus");
+const debtNote = document.getElementById("debtNote");
+const debtTotalOwed = document.querySelector("[data-debt-total='owed']");
+const debtTotalReceivable = document.querySelector("[data-debt-total='receivable']");
+const debtTotalNet = document.querySelector("[data-debt-total='net']");
 
 const showModal = () => {
   if (!loginModal) return;
@@ -363,6 +385,8 @@ const applyAccountingAccess = (role) => {
   if (role !== "admin") setEditingState(false);
 
   renderTransactions(role !== "admin");
+  if (addDebt) addDebt.hidden = role !== "admin";
+  renderDebts(role !== "admin");
 };
 
 const getDisplayNameForRole = (role) => {
@@ -1393,6 +1417,146 @@ const renderInventory = (soldMap = new Map()) => {
   }
 };
 
+const getDebts = () => {
+  const stored = localStorage.getItem(DEBTS_KEY);
+  if (!stored) return [];
+  try {
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    localStorage.removeItem(DEBTS_KEY);
+    return [];
+  }
+};
+
+const saveDebts = (items) => {
+  localStorage.setItem(DEBTS_KEY, JSON.stringify(items));
+  if (firebaseEnabled) firebaseStore.setDocValue(DEBTS_KEY, items).catch(() => {});
+};
+
+const getDebtLabel = (type) => (type === "receivable" ? "Dluží nám" : "Naše dluhy");
+const getDebtPillClass = (type) =>
+  type === "receivable" ? "debt-pill debt-pill--receivable" : "debt-pill debt-pill--owed";
+const getDebtStatusLabel = (status) => (status === "paid" ? "Splaceno" : "Aktivní");
+const getDebtStatusClass = (status) =>
+  status === "paid" ? "debt-pill debt-status--paid" : "debt-pill debt-status--open";
+
+const updateDebtTotals = (items) => {
+  if (!debtTotalOwed && !debtTotalReceivable && !debtTotalNet) return;
+  let owed = 0;
+  let receivable = 0;
+  items.forEach((item) => {
+    const principal = Number(item.principal || 0);
+    const interest = Number(item.interestAmount || 0);
+    const total = principal + interest;
+    if (item.status === "paid") return;
+    if (item.type === "receivable") receivable += total;
+    else owed += total;
+  });
+  if (debtTotalOwed) debtTotalOwed.textContent = formatCurrency(owed);
+  if (debtTotalReceivable) debtTotalReceivable.textContent = formatCurrency(receivable);
+  if (debtTotalNet) debtTotalNet.textContent = formatCurrency(receivable - owed);
+};
+
+const renderDebts = (readOnly = false) => {
+  if (!debtTableBody) return;
+  const items = getDebts();
+  if (!items.length) {
+    debtTableBody.innerHTML =
+      "<tr><td colspan=\"11\" class=\"muted\">Zatím žádné dluhy.</td></tr>";
+    updateDebtTotals(items);
+    return;
+  }
+  debtTableBody.innerHTML = items
+    .map((item, index) => {
+      const principal = Number(item.principal || 0);
+      const interest = Number(item.interestAmount || 0);
+      const total = principal + interest;
+      const interestLabel = item.interestRate
+        ? `${item.interestRate}% · ${formatCurrency(interest)}`
+        : formatCurrency(interest);
+      const actions = readOnly
+        ? "<span class=\"muted\">—</span>"
+        : `
+          <div class=\"table-actions\">
+            <button class=\"btn btn--outline btn--xs\" type=\"button\" data-action=\"edit\">Upravit</button>
+            <button class=\"btn btn--danger btn--xs\" type=\"button\" data-action=\"delete\">Smazat</button>
+          </div>
+        `;
+      return `
+        <tr data-debt-index="${index}">
+          <td><span class="${getDebtPillClass(item.type)}">${getDebtLabel(item.type)}</span></td>
+          <td>${item.person || "—"}</td>
+          <td>${item.reason || "—"}</td>
+          <td>${formatCurrency(principal)}</td>
+          <td>${interestLabel}</td>
+          <td><strong>${formatCurrency(total)}</strong></td>
+          <td>${item.startDate || "—"}</td>
+          <td>${item.dueDate || "—"}</td>
+          <td><span class="${getDebtStatusClass(item.status)}">${getDebtStatusLabel(item.status)}</span></td>
+          <td>${item.note || "—"}</td>
+          <td>${actions}</td>
+        </tr>
+      `;
+    })
+    .join("");
+  updateDebtTotals(items);
+};
+
+const updateDebtTotalPreview = () => {
+  if (!debtPrincipal || !debtInterestRate || !debtInterestAmount || !debtTotal) return;
+  const principal = Number(debtPrincipal.value || 0);
+  const rate = Number(debtInterestRate.value || 0);
+  let interest = Number(debtInterestAmount.value || 0);
+  if (rate > 0) {
+    interest = Math.round((principal * rate) / 100);
+    debtInterestAmount.value = String(interest);
+  }
+  debtTotal.value = formatCurrency(principal + interest);
+};
+
+const openDebtModal = (item = null, index = null) => {
+  if (!debtModal) return;
+  debtModal.classList.add("show");
+  debtModal.setAttribute("aria-hidden", "false");
+  if (debtTitle) debtTitle.textContent = item ? "Upravit dluh" : "Nový dluh";
+  if (debtForm) {
+    if (index !== null && index !== undefined) debtForm.dataset.editIndex = String(index);
+    else delete debtForm.dataset.editIndex;
+  }
+  if (!item) {
+    if (debtType) debtType.value = "owed";
+    if (debtPerson) debtPerson.value = "";
+    if (debtReason) debtReason.value = "";
+    if (debtPrincipal) debtPrincipal.value = "";
+    if (debtInterestRate) debtInterestRate.value = "";
+    if (debtInterestAmount) debtInterestAmount.value = "";
+    if (debtStartDate) debtStartDate.value = new Date().toISOString().slice(0, 10);
+    if (debtDueDate) debtDueDate.value = "";
+    if (debtStatus) debtStatus.value = "open";
+    if (debtNote) debtNote.value = "";
+  } else {
+    if (debtType) debtType.value = item.type || "owed";
+    if (debtPerson) debtPerson.value = item.person || "";
+    if (debtReason) debtReason.value = item.reason || "";
+    if (debtPrincipal) debtPrincipal.value = String(item.principal || "");
+    if (debtInterestRate) debtInterestRate.value = String(item.interestRate || "");
+    if (debtInterestAmount) debtInterestAmount.value = String(item.interestAmount || "");
+    if (debtStartDate) debtStartDate.value = item.startDate || "";
+    if (debtDueDate) debtDueDate.value = item.dueDate || "";
+    if (debtStatus) debtStatus.value = item.status || "open";
+    if (debtNote) debtNote.value = item.note || "";
+  }
+  updateDebtTotalPreview();
+  debtPerson?.focus();
+};
+
+const closeDebtModal = () => {
+  if (!debtModal) return;
+  debtModal.classList.remove("show");
+  debtModal.setAttribute("aria-hidden", "true");
+};
+
 
 const updateRowAmount = (row) => {
   if (!row) return;
@@ -1516,6 +1680,81 @@ transactionForm?.addEventListener("submit", (event) => {
   recalcTotals();
   transactionModal?.classList.remove("show");
   transactionModal?.setAttribute("aria-hidden", "true");
+});
+
+addDebt?.addEventListener("click", () => {
+  if (!isAdminRole()) return;
+  openDebtModal();
+});
+
+closeDebt?.addEventListener("click", closeDebtModal);
+
+debtModal?.addEventListener("click", (event) => {
+  if (event.target === debtModal) closeDebtModal();
+});
+
+[debtPrincipal, debtInterestRate, debtInterestAmount].forEach((el) =>
+  el?.addEventListener("input", updateDebtTotalPreview)
+);
+
+debtForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (!debtPerson) return;
+  if (!isAdminRole()) return;
+  if (!debtPerson.value.trim()) return;
+  const items = getDebts();
+  const principal = Number(debtPrincipal?.value || 0);
+  const rate = Number(debtInterestRate?.value || 0);
+  const interestAmount = Number(debtInterestAmount?.value || 0);
+  const payload = {
+    type: debtType?.value || "owed",
+    person: debtPerson.value.trim(),
+    reason: debtReason?.value.trim() || "",
+    principal,
+    interestRate: rate,
+    interestAmount,
+    startDate: debtStartDate?.value || "",
+    dueDate: debtDueDate?.value || "",
+    status: debtStatus?.value || "open",
+    note: debtNote?.value.trim() || "",
+    updatedAt: new Date().toISOString(),
+  };
+  const editIndex = debtForm?.dataset.editIndex;
+  if (editIndex) {
+    const index = Number(editIndex);
+    if (!Number.isNaN(index) && items[index]) {
+      items[index] = { ...items[index], ...payload };
+    }
+  } else {
+    items.unshift({ ...payload, createdAt: new Date().toISOString() });
+  }
+  saveDebts(items);
+  renderDebts(!isAdminRole());
+  addAudit(editIndex ? "Upraven dluh" : "Přidán dluh");
+  closeDebtModal();
+});
+
+debtTableBody?.addEventListener("click", (event) => {
+  if (!isAdminRole()) return;
+  const button = event.target.closest("[data-action]");
+  if (!button) return;
+  const row = button.closest("[data-debt-index]");
+  if (!row) return;
+  const index = Number(row.dataset.debtIndex || "-1");
+  if (Number.isNaN(index) || index < 0) return;
+  const items = getDebts();
+  const selected = items[index];
+  if (!selected) return;
+  if (button.dataset.action === "edit") {
+    openDebtModal(selected, index);
+    return;
+  }
+  if (button.dataset.action === "delete") {
+    const updated = items.filter((_, itemIndex) => itemIndex !== index);
+    saveDebts(updated);
+    renderDebts(!isAdminRole());
+    addAudit("Smazán dluh");
+  }
 });
 
 recalcTotals();
@@ -2025,20 +2264,24 @@ const resetAccountingData = () => {
   localStorage.removeItem(TX_KEY);
   localStorage.removeItem(AUDIT_KEY);
   localStorage.removeItem(INVENTORY_KEY);
+  localStorage.removeItem(DEBTS_KEY);
   localStorage.setItem(EDITS_KEY, JSON.stringify({}));
   localStorage.setItem(TX_KEY, JSON.stringify([]));
   localStorage.setItem(AUDIT_KEY, JSON.stringify([]));
   localStorage.setItem(INVENTORY_KEY, JSON.stringify([]));
+  localStorage.setItem(DEBTS_KEY, JSON.stringify([]));
   if (firebaseEnabled) {
     firebaseStore.setDocValue(EDITS_KEY, {}).catch(() => {});
     firebaseStore.setDocValue(TX_KEY, []).catch(() => {});
     firebaseStore.setDocValue(AUDIT_KEY, []).catch(() => {});
     firebaseStore.setDocValue(INVENTORY_KEY, []).catch(() => {});
+    firebaseStore.setDocValue(DEBTS_KEY, []).catch(() => {});
   }
   renderAudit();
   renderRecentTransactions();
   renderRecentEdits();
   renderInventory();
+  renderDebts(!isAdminRole());
   recalcTotals();
 };
 
@@ -2062,6 +2305,7 @@ renderGalleryAdmin();
 renderGalleryPublic();
 renderBanner();
 renderAccounts();
+renderDebts(!isAdminRole());
 loadBannerForm();
 updateModalItemControl();
 renderRentalRequests();
@@ -2079,6 +2323,7 @@ hydrateFromFirebase().then(() => {
   renderGalleryPublic();
   renderBanner();
   renderAccounts();
+  renderDebts(!isAdminRole());
   loadBannerForm();
   updateModalItemControl();
   renderRentalRequests();
