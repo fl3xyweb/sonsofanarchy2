@@ -11,7 +11,7 @@ if (!firebaseEnabled) {
   console.warn("Firebase Firestore is not initialized. Sync is disabled.");
 }
 const ROLE_EMAILS = {
-  admin: "admin@soa.local",
+  admin: ["admin@soa.local","trex@soa.local", "pterodaktyl@soa.local"],
   member: "member@soa.local",
 };
 const getRoleEmail = (role) => ROLE_EMAILS[role] || ROLE_EMAILS.member;
@@ -773,6 +773,14 @@ const parseAmount = (value) => {
   return isNegative ? -amount : amount;
 };
 
+const normalizeText = (value = "") =>
+  value
+    .toString()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+
 const formatCurrency = (value) => {
   const sign = value < 0 ? "-" : "";
   const abs = Math.abs(value);
@@ -1259,7 +1267,7 @@ const recalcTotals = () => {
     const enteredCell = row.children[7];
 
     const sectionText = sectionCell?.textContent?.toLowerCase() || "";
-    const typeText = typeCell?.textContent?.toLowerCase() || "";
+    const typeText = typeCell?.textContent || "";
     const amountValue = parseAmount(amountCell?.textContent || "");
     const enteredBy = enteredCell?.textContent?.trim() || "Neznámý";
     const itemSelect = itemCell?.querySelector("[data-item-select]");
@@ -1268,8 +1276,9 @@ const recalcTotals = () => {
     const itemValue = itemSelect?.value || itemInput?.value || "—";
     const qtyValue = Number(qtyInput?.value || 0);
 
-    const isExplicitExpense = typeText.includes("výdaj") || typeText.includes("vydaj");
-    const isExplicitIncome = typeText.includes("příjem") || typeText.includes("prijem");
+    const normalizedType = normalizeText(typeText);
+    const isExplicitExpense = normalizedType.includes("vydaj");
+    const isExplicitIncome = normalizedType.includes("prijem");
     const isIncome = isExplicitIncome || (!isExplicitExpense && amountValue > 0);
     const isExpense = isExplicitExpense || (!isExplicitIncome && amountValue < 0);
     const normalizedSection = getSectionType(sectionText);
@@ -1398,7 +1407,8 @@ const updateRowAmount = (row) => {
   const price = getPrice(itemSelect.value);
   const qty = Number(qtyInput.value || 0);
   const total = qty * price;
-  const isExpense = typeCell?.textContent?.toLowerCase().includes("výdaj");
+  const typeText = typeCell?.textContent || "";
+  const isExpense = normalizeText(typeText).includes("vydaj");
   const signed = isExpense ? -total : total;
   amountCell.textContent = formatCurrency(signed);
 };
@@ -1764,7 +1774,14 @@ function getAccounts() {
   if (!stored) return [];
   try {
     const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) ? parsed : [];
+    if (Array.isArray(parsed)) return parsed;
+    if (parsed && typeof parsed === "object") {
+      if (Array.isArray(parsed.items)) return parsed.items;
+      if (Array.isArray(parsed.accounts)) return parsed.accounts;
+      const values = Object.values(parsed);
+      return values.every((value) => typeof value === "object") ? values : [];
+    }
+    return [];
   } catch {
     localStorage.removeItem(ACCOUNTS_KEY);
     return [];
