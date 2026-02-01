@@ -926,7 +926,6 @@ const updateItemCellForRow = (row) => {
   itemCell.innerHTML = buildItemCellContent(sectionType, currentValue, readOnly);
 };
 
-updateRoleUI();
 
 const updateModalItemControl = () => {
   if (!txSection) return;
@@ -2298,6 +2297,8 @@ clearAudit?.addEventListener("click", () => {
   if (firebaseEnabled) firebaseStore.setDocValue(AUDIT_KEY, []).catch(() => {});
   renderAudit();
 });
+
+updateRoleUI();
 
 renderAudit();
 renderRecentTransactions();
