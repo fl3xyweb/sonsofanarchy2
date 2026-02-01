@@ -229,6 +229,55 @@
             </table>
           </div>
 
+          <div class="card card--wide">
+            <div class="accounting__header">
+              <div>
+                <h4>Dluhy & pohledávky</h4>
+                <p class="muted">Přehled našich závazků a pohledávek, včetně úroků.</p>
+              </div>
+              <div class="edit-tools" data-access="admin">
+                <button class="btn btn--outline" id="addDebt" type="button">Nový dluh</button>
+              </div>
+            </div>
+            <div class="grid grid--3" style="margin-top: 12px;">
+              <article class="card">
+                <h4>Dlužíme</h4>
+                <p class="big" data-debt-total="owed">$ 0</p>
+                <p class="muted">Naše závazky</p>
+              </article>
+              <article class="card">
+                <h4>Dluží nám</h4>
+                <p class="big" data-debt-total="receivable">$ 0</p>
+                <p class="muted">Pohledávky</p>
+              </article>
+              <article class="card">
+                <h4>Saldo</h4>
+                <p class="big" data-debt-total="net">$ 0</p>
+                <p class="muted">Čistá pozice</p>
+              </article>
+            </div>
+            <div class="table-scroll">
+              <table class="debt-table">
+                <thead>
+                  <tr>
+                    <th>Typ</th>
+                    <th>Subjekt</th>
+                    <th>Popis</th>
+                    <th>Jistina</th>
+                    <th>Úrok</th>
+                    <th>Celkem</th>
+                    <th>Od</th>
+                    <th>Splatnost</th>
+                    <th>Stav</th>
+                    <th>Poznámka</th>
+                    <th data-access="admin">Akce</th>
+                  </tr>
+                </thead>
+                <tbody id="debtTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
           <div data-access="admin">
             <div class="section__header" style="margin-top: 28px;">
               <h3>Sklad věcí</h3>
@@ -410,6 +459,46 @@
           <label for="txApprove">Schválil</label>
           <input id="txApprove" type="text" placeholder="Jméno" />
           <button class="btn" type="submit">Přidat transakci</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal" id="debtModal" aria-hidden="true" role="dialog" aria-labelledby="debtTitle">
+      <div class="modal__card modal__card--wide">
+        <div class="modal__header">
+          <h3 id="debtTitle">Nový dluh</h3>
+          <button class="icon-btn" id="closeDebt" type="button" aria-label="Zavřít">×</button>
+        </div>
+        <form id="debtForm" class="form">
+          <label for="debtType">Typ</label>
+          <select id="debtType">
+            <option value="owed">Naše dluhy</option>
+            <option value="receivable">Dluží nám</option>
+          </select>
+          <label for="debtPerson">Subjekt</label>
+          <input id="debtPerson" type="text" placeholder="Jméno / firma" required />
+          <label for="debtReason">Popis</label>
+          <input id="debtReason" type="text" placeholder="Např. půjčka na vybavení" />
+          <label for="debtPrincipal">Jistina</label>
+          <input id="debtPrincipal" type="number" min="0" step="1" placeholder="0" />
+          <label for="debtInterestRate">Úrok %</label>
+          <input id="debtInterestRate" type="number" min="0" step="0.1" placeholder="0" />
+          <label for="debtInterestAmount">Úrok částka</label>
+          <input id="debtInterestAmount" type="number" min="0" step="1" placeholder="0" />
+          <label for="debtTotal">Celkem</label>
+          <input id="debtTotal" type="text" readonly />
+          <label for="debtStartDate">Datum vzniku</label>
+          <input id="debtStartDate" type="date" />
+          <label for="debtDueDate">Splatnost</label>
+          <input id="debtDueDate" type="date" />
+          <label for="debtStatus">Stav</label>
+          <select id="debtStatus">
+            <option value="open">Aktivní</option>
+            <option value="paid">Splaceno</option>
+          </select>
+          <label for="debtNote">Poznámka</label>
+          <input id="debtNote" type="text" placeholder="Krátká poznámka" />
+          <button class="btn" type="submit">Uložit dluh</button>
         </form>
       </div>
     </div>
