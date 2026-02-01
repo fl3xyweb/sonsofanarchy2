@@ -22,6 +22,23 @@ const inferRoleFromEmail = (email = "") => {
   return "member";
 };
 
+const getFirebaseAuthErrorMessage = (error) => {
+  const code = error?.code || "";
+  if (code === "auth/unauthorized-domain") {
+    return "Nepovolená doména. Přidej doménu v Firebase Auth → Authorized domains.";
+  }
+  if (code === "auth/operation-not-allowed") {
+    return "Email/heslo přihlášení není povoleno ve Firebase Auth.";
+  }
+  if (code === "auth/user-not-found") {
+    return "Uživatel nenalezen. Zkontroluj e-mail nebo vytvoř účet ve Firebase Auth.";
+  }
+  if (code === "auth/wrong-password" || code === "auth/invalid-credential") {
+    return "Nesprávné heslo. Zkus to znovu.";
+  }
+  return `Přihlášení přes Firebase selhalo${code ? ` (${code})` : ""}.`;
+};
+
 const resolveAccountByEmail = async (email) => {
   if (!email) return null;
   const normalized = email.toLowerCase();
@@ -378,7 +395,11 @@ const handleAdminLogin = async (event) => {
   const password = adminPassword?.value || "";
   if (authEnabled) {
     try {
-      const email = adminEmail?.value?.trim() || getRoleEmail("admin");
+      const email = adminEmail?.value?.trim();
+      if (!email) {
+        if (loginError) loginError.textContent = "Zadej e-mail pro Firebase přihlášení.";
+        return;
+      }
       await firebaseAuth.signIn(email, password);
       const account = await resolveAccountByEmail(email);
       const role = account?.role || "admin";
@@ -388,8 +409,8 @@ const handleAdminLogin = async (event) => {
       addAudit("Admin ověření úspěšné (Firebase)");
       hideModal();
       return;
-    } catch {
-      if (loginError) loginError.textContent = "Nesprávné heslo. Zkus to znovu.";
+    } catch (error) {
+      if (loginError) loginError.textContent = getFirebaseAuthErrorMessage(error);
       return;
     }
   }
@@ -457,7 +478,11 @@ const handleRoleLogin = async (event) => {
   const isAdmin = selectedRole === "admin";
   if (authEnabled) {
     try {
-      const email = roleEmail?.value?.trim() || getRoleEmail(selectedRole);
+      const email = roleEmail?.value?.trim();
+      if (!email) {
+        if (roleError) roleError.textContent = "Zadej e-mail pro Firebase přihlášení.";
+        return;
+      }
       await firebaseAuth.signIn(email, password);
       const account = await resolveAccountByEmail(email);
       const role = account?.role || selectedRole;
@@ -465,8 +490,8 @@ const handleRoleLogin = async (event) => {
       setRole(role, displayName);
       hideRoleModal();
       return;
-    } catch {
-      if (roleError) roleError.textContent = "Nesprávné heslo. Zkus to znovu.";
+    } catch (error) {
+      if (roleError) roleError.textContent = getFirebaseAuthErrorMessage(error);
       return;
     }
   }
@@ -1243,7 +1268,10 @@ const recalcTotals = () => {
     const itemValue = itemSelect?.value || itemInput?.value || "—";
     const qtyValue = Number(qtyInput?.value || 0);
 
-    const isIncome = typeText.includes("příjem") || amountValue > 0;
+    const isExplicitExpense = typeText.includes("výdaj") || typeText.includes("vydaj");
+    const isExplicitIncome = typeText.includes("příjem") || typeText.includes("prijem");
+    const isIncome = isExplicitIncome || (!isExplicitExpense && amountValue > 0);
+    const isExpense = isExplicitExpense || (!isExplicitIncome && amountValue < 0);
     const normalizedSection = getSectionType(sectionText);
 
     if (isIncome) {
@@ -1253,7 +1281,7 @@ const recalcTotals = () => {
       if (normalizedSection === "bar" && MENU_ITEMS.includes(itemValue) && qtyValue > 0) {
         sold.set(itemValue, (sold.get(itemValue) || 0) + qtyValue);
       }
-    } else {
+    } else if (isExpense) {
       expenses += Math.abs(amountValue);
       sections[normalizedSection].expenses += Math.abs(amountValue);
     }
