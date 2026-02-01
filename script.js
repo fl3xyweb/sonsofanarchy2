@@ -232,6 +232,9 @@ const txItem = document.getElementById("txItem");
 const txCharterLabel = document.getElementById("txCharterLabel");
 const txCharterDesc = document.getElementById("txCharterDesc");
 const txQty = document.getElementById("txQty");
+const txExtraItems = document.getElementById("txExtraItems");
+const txItemsList = document.getElementById("txItemsList");
+const addTxItem = document.getElementById("addTxItem");
 const txAmount = document.getElementById("txAmount");
 const txEntered = document.getElementById("txEntered");
 const txApprove = document.getElementById("txApprove");
@@ -646,13 +649,25 @@ const saveEditsToStorage = () => {
       const itemSelect = cells[4]?.querySelector("[data-item-select]");
       const itemInput = cells[4]?.querySelector("[data-item-input]");
       const qtyInput = cells[5]?.querySelector("[data-qty-input]");
+      let items = [];
+      if (row.dataset.items) {
+        try {
+          const parsed = JSON.parse(row.dataset.items);
+          if (Array.isArray(parsed)) items = parsed;
+        } catch {
+          items = [];
+        }
+      }
+      const itemValue = items.length ? (items[0]?.item || "—") : (itemSelect?.value || itemInput?.value || "—");
+      const qtyValue = items.length ? Number(items[0]?.qty || 0) : Number(qtyInput?.value || 0);
       return {
         date: cells[0]?.textContent?.trim() || "",
         desc: cells[1]?.textContent?.trim() || "",
         section: cells[2]?.textContent?.trim() || "",
         type: cells[3]?.textContent?.trim() || "",
-        item: itemSelect?.value || itemInput?.value || "—",
-        qty: Number(qtyInput?.value || 0),
+        item: itemValue,
+        qty: qtyValue,
+        ...(items.length ? { items } : {}),
         amount: cells[6]?.textContent?.trim() || "",
         enteredBy: cells[7]?.textContent?.trim() || "",
         approve: cells[8]?.textContent?.trim() || "",
@@ -706,6 +721,22 @@ const buildTransactionRow = (row, readOnly = false, index = 0) => {
   const qtyInput = readOnly
     ? `<input class="qty-input" type="number" min="0" value="${qtyValue}" data-qty-input disabled />`
     : `<input class="qty-input" type="number" min="0" value="${qtyValue}" data-qty-input />`;
+  let itemCellContent = buildItemCellContent(sectionType, row.item || "", readOnly);
+  if (Array.isArray(row.items) && row.items.length) {
+    tr.dataset.items = JSON.stringify(row.items);
+    const itemsMarkup = row.items
+      .map((item) => {
+        const qty = Number(item.qty || 0);
+        return `
+          <div class="item-line">
+            <span>${item.item || "—"}</span>
+            <strong>${qty} ks</strong>
+          </div>
+        `;
+      })
+      .join("");
+    itemCellContent = `<div class="item-list">${itemsMarkup}</div>`;
+  }
 
   tr.innerHTML = `
     ${editableCell("date", row.date)}
@@ -713,7 +744,7 @@ const buildTransactionRow = (row, readOnly = false, index = 0) => {
     ${editableCell("section", sectionValue)}
     ${editableCell("type", row.type)}
     <td>
-      ${buildItemCellContent(sectionType, row.item || "", readOnly)}
+      ${itemCellContent}
     </td>
     <td>${qtyInput}</td>
     ${editableCell("amount", row.amount)}
@@ -941,6 +972,7 @@ const buildItemCellContent = (sectionType, itemValue, readOnly = false) => {
 
 const updateItemCellForRow = (row) => {
   if (!row) return;
+  if (row.dataset.items) return;
   const sectionCell = row.children[2];
   const itemCell = row.children[4];
   if (!sectionCell || !itemCell) return;
@@ -948,6 +980,82 @@ const updateItemCellForRow = (row) => {
   const sectionType = getSectionType(sectionCell.textContent);
   const currentValue = getItemValueFromRow(row);
   itemCell.innerHTML = buildItemCellContent(sectionType, currentValue, readOnly);
+};
+
+const getItemsForSectionType = (sectionType) =>
+  sectionType === "workshop" ? WORKSHOP_ITEMS : MENU_ITEMS;
+
+const buildItemOptions = (items, selected) =>
+  ["—", ...items]
+    .map((item) => {
+      const isSelected = item === (selected || "—") ? "selected" : "";
+      return `<option value="${item}" ${isSelected}>${item}</option>`;
+    })
+    .join("");
+
+const updateExtraItemsOptions = (sectionType) => {
+  if (!txItemsList) return;
+  const items = getItemsForSectionType(sectionType);
+  txItemsList.querySelectorAll("select").forEach((select) => {
+    const current = select.value || "—";
+    select.innerHTML = buildItemOptions(items, current);
+  });
+};
+
+const buildExtraItemRow = (sectionType, itemValue = "—", qtyValue = 1) => {
+  const row = document.createElement("div");
+  row.className = "extra-items__row";
+
+  const select = document.createElement("select");
+  select.className = "extra-items__select";
+  select.innerHTML = buildItemOptions(getItemsForSectionType(sectionType), itemValue);
+
+  const qty = document.createElement("input");
+  qty.className = "extra-items__qty";
+  qty.type = "number";
+  qty.min = "0";
+  qty.value = String(qtyValue || 0);
+
+  const remove = document.createElement("button");
+  remove.type = "button";
+  remove.className = "btn btn--ghost btn--xs extra-items__remove";
+  remove.textContent = "×";
+
+  remove.addEventListener("click", () => {
+    row.remove();
+    updateModalAmount();
+  });
+  select.addEventListener("change", updateModalAmount);
+  qty.addEventListener("input", updateModalAmount);
+
+  row.append(select, qty, remove);
+  return row;
+};
+
+const resetExtraItems = () => {
+  if (txItemsList) txItemsList.innerHTML = "";
+};
+
+const getModalItems = (sectionType) => {
+  if (sectionType === "charter") return [];
+  const items = [];
+  const baseItem = txItem?.value || "—";
+  const baseQty = Number(txQty?.value || 0);
+  if (baseItem !== "—" && baseQty > 0) {
+    items.push({ item: baseItem, qty: baseQty });
+  }
+  if (txItemsList) {
+    txItemsList.querySelectorAll(".extra-items__row").forEach((row) => {
+      const select = row.querySelector("select");
+      const qty = row.querySelector("input");
+      const itemValue = select?.value || "—";
+      const qtyValue = Number(qty?.value || 0);
+      if (itemValue !== "—" && qtyValue > 0) {
+        items.push({ item: itemValue, qty: qtyValue });
+      }
+    });
+  }
+  return items;
 };
 
 
@@ -974,15 +1082,21 @@ const updateModalItemControl = () => {
       .map((item) => `<option value="${item}" ${item === current ? "selected" : ""}>${item}</option>`)
       .join("");
   }
+
+  if (txExtraItems) txExtraItems.style.display = showCharter ? "none" : "grid";
+  if (showCharter) {
+    resetExtraItems();
+  } else {
+    updateExtraItemsOptions(sectionType);
+  }
 };
 
 const updateModalAmount = () => {
   if (!txAmount || !txQty || !txType || !txSection) return;
   const sectionType = getSectionType(txSection.value || "");
   if (sectionType === "charter") return;
-  const qty = Number(txQty.value || 0);
-  const price = getPrice(txItem?.value || "");
-  const total = qty * price;
+  const items = getModalItems(sectionType);
+  const total = items.reduce((sum, item) => sum + getPrice(item.item) * item.qty, 0);
   const signed = txType.value === "Výdaj" ? -total : total;
   txAmount.value = formatCurrency(signed);
 };
@@ -1324,6 +1438,15 @@ const recalcTotals = () => {
     const qtyInput = qtyCell?.querySelector("[data-qty-input]");
     const itemValue = itemSelect?.value || itemInput?.value || "—";
     const qtyValue = Number(qtyInput?.value || 0);
+    let rowItems = [];
+    if (row.dataset.items) {
+      try {
+        const parsed = JSON.parse(row.dataset.items);
+        if (Array.isArray(parsed)) rowItems = parsed;
+      } catch {
+        rowItems = [];
+      }
+    }
 
     const normalizedType = normalizeText(typeText);
     const isExplicitExpense = normalizedType.includes("vydaj");
@@ -1336,8 +1459,17 @@ const recalcTotals = () => {
       income += Math.abs(amountValue);
       sections[normalizedSection].income += Math.abs(amountValue);
       earners.set(enteredBy, (earners.get(enteredBy) || 0) + Math.abs(amountValue));
-      if (normalizedSection === "bar" && MENU_ITEMS.includes(itemValue) && qtyValue > 0) {
-        sold.set(itemValue, (sold.get(itemValue) || 0) + qtyValue);
+      if (normalizedSection === "bar") {
+        if (rowItems.length) {
+          rowItems.forEach((item) => {
+            const qty = Number(item.qty || 0);
+            if (MENU_ITEMS.includes(item.item) && qty > 0) {
+              sold.set(item.item, (sold.get(item.item) || 0) + qty);
+            }
+          });
+        } else if (MENU_ITEMS.includes(itemValue) && qtyValue > 0) {
+          sold.set(itemValue, (sold.get(itemValue) || 0) + qtyValue);
+        }
       }
     } else if (isExpense) {
       expenses += Math.abs(amountValue);
@@ -1691,6 +1823,7 @@ addTransaction?.addEventListener("click", () => {
   if (txItem) txItem.value = "—";
   if (txCharterDesc) txCharterDesc.value = "";
   if (txQty) txQty.value = "1";
+  resetExtraItems();
   if (txEntered) txEntered.value = "";
   if (txApprove) txApprove.value = "";
   updateModalItemControl();
@@ -1717,6 +1850,14 @@ txSection?.addEventListener("change", () => {
   updateModalAmount();
 });
 
+addTxItem?.addEventListener("click", () => {
+  if (!txSection || !txItemsList) return;
+  const sectionType = getSectionType(txSection.value || "");
+  if (sectionType === "charter") return;
+  txItemsList.appendChild(buildExtraItemRow(sectionType));
+  updateModalAmount();
+});
+
 transactionForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   if (!transactionBody) return;
@@ -1724,12 +1865,15 @@ transactionForm?.addEventListener("submit", (event) => {
   const id = `t${Date.now()}`;
   const sectionValue = txSection?.value || "Charter";
   const sectionType = getSectionType(sectionValue);
-  const itemValue = sectionType === "charter" ? txCharterDesc?.value?.trim() || "" : txItem?.value || "—";
-  const price = getPrice(txItem?.value || "");
-  const qty = Number(txQty?.value || 0);
-  const total = qty * price;
+  const isCharter = sectionType === "charter";
+  const items = isCharter ? [] : getModalItems(sectionType);
+  const itemValue = isCharter ? txCharterDesc?.value?.trim() || "" : (items[0]?.item || "—");
+  const qty = isCharter ? 0 : (items[0]?.qty || 0);
+  const total = isCharter
+    ? 0
+    : items.reduce((sum, item) => sum + getPrice(item.item) * item.qty, 0);
   const signed = txType?.value === "Výdaj" ? -total : total;
-  const amountText = sectionType === "charter"
+  const amountText = isCharter
     ? (txAmount?.value?.trim() || "")
     : formatCurrency(signed);
 
@@ -1741,6 +1885,7 @@ transactionForm?.addEventListener("submit", (event) => {
     type: txType?.value || "Příjem",
     item: itemValue || "—",
     qty,
+    ...(items.length ? { items } : {}),
     amount: amountText,
     enteredBy: txEntered?.value || roleName,
     approve: txApprove?.value || (isAdminRole() ? roleName : "—"),
