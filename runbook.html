@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sons of Anarchy | Runbook</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="page--sub">
+    <div class="grain" aria-hidden="true"></div>
+    <div class="notice notice--banner" id="topNotice" hidden>
+      <div class="notice__content">
+        <strong id="topNoticeTitle">OZNÁMENÍ</strong>
+        <span id="topNoticeMessage">Aktuality z klubu budou brzy doplněny.</span>
+      </div>
+      <button class="notice__close" id="closeNotice" type="button" aria-label="Skrýt">×</button>
+    </div>
+    <header class="hero" id="top">
+      <nav class="nav">
+        <a class="brand brand-link" href="index.html">
+          <span class="brand__logo" aria-hidden="true">
+            <img class="logo-img" src="logo.png" alt="Sons of Anarchy crest" />
+          </span>
+          <div class="brand__text">
+            <strong>Sons of Anarchy</strong>
+            <small>Klub v Los Santos</small>
+          </div>
+        </a>
+        <div class="nav__links">
+          <a href="index.html">Domů</a>
+          <a href="bar.html">Bar</a>
+          <a href="dilna.html">Dílna</a>
+          <a class="active" href="runbook.html" data-role="member" hidden>Runbook</a>
+          <a href="members.html" data-role="member" hidden>Members</a>
+          <a href="gallery.html">Galerie</a>
+          <a href="ucty.html" data-role="admin" hidden>Účty</a>
+          <a href="ucetnictvi.html" data-role="admin" hidden>Účetnictví</a>
+          <a href="admin.html" data-role="admin" hidden>Správa</a>
+          <button class="btn btn--ghost" id="openRoleLogin" type="button">Přihlásit</button>
+          <button class="btn btn--ghost" id="logoutRole" type="button" hidden>Odhlásit</button>
+          <span class="role-status" id="roleStatus" hidden></span>
+        </div>
+      </nav>
+
+      <div class="page-hero">
+        <p class="eyebrow">Runbook · Interní protokoly · Charter</p>
+        <h1>Runbook charteru</h1>
+        <p class="lead">
+          Tohle je interní mapa chodu klubu. Obsahuje role, zásady a protokoly pro
+          udržení pořádku, bezpečí a respektu.
+        </p>
+        <div class="subnav">
+          <a class="pill" href="#veleni">Řetězec velení</a>
+          <a class="pill" href="#protokoly">Protokoly</a>
+          <a class="pill" href="#ritualy">Rituály</a>
+          <a class="pill" href="#signal">Signály</a>
+        </div>
+      </div>
+    </header>
+
+    <div class="lock" id="memberLock">
+      <div class="lock__content">
+        <h3>Přístup uzamčen</h3>
+        <p>Runbook je dostupný pouze přihlášeným členům.</p>
+        <button class="btn" id="openRoleLogin2" type="button">Přihlásit se</button>
+      </div>
+    </div>
+
+    <main id="memberContent" hidden>
+      <section class="section">
+        <div class="section__header">
+          <h2>Runbook · WIP</h2>
+          <p>Obsah se připravuje. V nejbližší době přibudou interní protokoly a postupy.</p>
+        </div>
+        <div class="card">
+          <p class="muted">
+            Sekce je v přípravě. Připravujeme detailní strukturu rolí, postupů a bezpečnostních zásad.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div>
+        <strong>Sons of Anarchy</strong>
+        <p class="muted">Klub v Los Santos · Bratrství & Respekt</p>
+      </div>
+      <div class="footer-center">
+        <p class="muted">Vytvořil FL3XY s ❤️</p>
+      </div>
+      <div>
+        <p class="muted">Kontakt: mistrmara_</p>
+        <p class="muted">Telefonní číslo naleznete v kontaktech.</p>
+      </div>
+    </footer>
+
+    <div class="modal" id="roleModal" aria-hidden="true" role="dialog" aria-labelledby="roleTitle">
+      <div class="modal__card">
+        <div class="modal__header">
+          <h3 id="roleTitle">Přihlášení role</h3>
+          <button class="icon-btn" id="closeRole" type="button" aria-label="Zavřít">×</button>
+        </div>
+        <form id="roleForm">
+          <label for="roleSelect">Role</label>
+          <select id="roleSelect">
+            <option value="member">Člen</option>
+            <option value="admin">Admin</option>
+          </select>
+          <label for="roleEmail">E-mail</label>
+          <input id="roleEmail" type="email" autocomplete="username" placeholder="Zadej e-mail" />
+          <label for="rolePassword">Heslo</label>
+          <input id="rolePassword" type="password" autocomplete="current-password" placeholder="Zadej heslo" required />
+          <p class="error" id="roleError" role="alert"></p>
+          <button class="btn" type="submit">Přihlásit</button>
+        </form>
+      </div>
+    </div>
+
+    <script type="module" src="firebase.js"></script>
+    <script type="module" src="script.js"></script>
+  </body>
+</html>

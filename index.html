@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sons of Anarchy | Charter Site</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="notice notice--banner" id="topNotice" hidden>
+      <div class="notice__content">
+        <strong id="topNoticeTitle">OZNÁMENÍ</strong>
+        <span id="topNoticeMessage">Aktuality z klubu budou brzy doplněny.</span>
+      </div>
+      <button class="notice__close" id="closeNotice" type="button" aria-label="Skrýt">×</button>
+    </div>
+    <header class="hero" id="top">
+      <nav class="nav">
+        <a class="brand brand-link" href="index.html">
+          <span class="brand__logo" aria-hidden="true">
+            <img class="logo-img" src="logo.png" alt="Sons of Anarchy crest" />
+          </span>
+          <div class="brand__text">
+            <strong>Sons of Anarchy</strong>
+            <small>Klub v Los Santos</small>
+          </div>
+        </a>
+        <div class="nav__links">
+          <a href="bar.html">Bar</a>
+          <a href="dilna.html">Dílna</a>
+          <a href="runbook.html" data-role="member" hidden>Runbook</a>
+          <a href="members.html" data-role="member" hidden>Members</a>
+          <a href="gallery.html">Galerie</a>
+          <a href="ucty.html" data-role="admin" hidden>Účty</a>
+          <a href="ucetnictvi.html" data-role="admin" hidden>Účetnictví</a>
+          <a href="admin.html" data-role="admin" hidden>Správa</a>
+          <button class="btn btn--ghost" id="openRoleLogin" type="button">Přihlásit</button>
+          <button class="btn btn--ghost" id="logoutRole" type="button" hidden>Odhlásit</button>
+          <span class="role-status" id="roleStatus" hidden></span>
+        </div>
+      </nav>
+
+      <div class="hero__content">
+        <div class="hero__copy">
+          <p class="eyebrow">Motorkářský klub · Bratrstvo · Respekt</p>
+          <h1>Sons of Anarchy</h1>
+          <p class="lead">
+            Motorkářské sdružení nově působící v okolí města Los Santos. Tato stránka slouží jakožto ukázka našich prostor, našeho menu a vybavenosti špičkové dílny určené jak pro automobily, tak motorky. Nahlédni do světa nadšenců na dvou kolech.
+          </p>
+          <div class="hero__actions">
+            <a class="btn" href="bar.html">Objevit bar</a>
+            <a class="btn btn--outline" href="dilna.html">Navštívit dílnu</a>
+            <a class="btn btn--ghost" href="runbook.html" data-role="member" hidden>Otevřít runbook</a>
+          </div>
+          <div class="hero__stats">
+            <div>
+              <span class="stat">24/7</span>
+              <span class="label">Klubovna</span>
+            </div>
+            <div>
+              <span class="stat">20</span>
+              <span class="label">Bratří</span>
+            </div>
+            <div>
+              <span class="stat">6700 km</span>
+              <span class="label">Najeto</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero__logo">
+          <img class="hero-logo-img" src="hero-logo.png" alt="Sons of Anarchy crest" />
+          <p class="muted">Oficiální crest našeho klubu</p>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="section">
+        <div class="section__header">
+          <h2>Aktuality</h2>
+          <p>Aktuální informace z klubu a provozu.</p>
+        </div>
+        <div class="card" data-role="admin" hidden>
+          <div class="accounting__header">
+            <div>
+              <h3>Nová aktualita</h3>
+              <p class="muted">Vlož aktuální zprávu pro členy a veřejnost.</p>
+            </div>
+            <div class="edit-tools">
+              <button class="btn" id="openAnnouncementModal" type="button">Přidat aktualitu</button>
+            </div>
+          </div>
+        </div>
+        <div class="announcement-list" id="announcementList"></div>
+      </section>
+
+      <section class="section section--alt">
+        <div class="section__header">
+          <h2>Kde nás najdete</h2>
+          <p>Propojení s mapou Los Santos a pin na naši clubhouse lokaci.</p>
+        </div>
+        <div class="map-grid">
+          <div class="map-card">
+            <div class="map-embed">
+              <div class="map-preview" aria-hidden="true">
+                <div class="map-preview__badge">Náhled mapy</div>
+              </div>
+              <div class="map-pin" aria-hidden="true"></div>
+              <div class="map-label">Klubovna · Los Santos</div>
+            </div>
+            <div class="map-actions">
+              <a class="btn btn--outline" href="https://gta-5-map.com/" target="_blank" rel="noopener">
+                Otevřít GTA mapu
+              </a>
+            </div>
+          </div>
+          <article class="card">
+            <h3>Klubovna</h3>
+            <p class="muted">Joshua Road 67 · Sandy Shores</p>
+            <ul class="list">
+              <li>Otevřeno 24/7 pro členy</li>
+              <li>Parkování pro 30+ strojů</li>
+              <li>Pokročilé zabezpečení</li>
+            </ul>
+            <a class="btn btn--outline" href="#top">Přijeď na návštěvu!</a>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section__header">
+          <h2>Vyber si sekci</h2>
+          <p>Každá část klubu naší stránky má v sobě kus našeho srdce.</p>
+        </div>
+        <div class="grid grid--3">
+          <article class="card">
+            <h3>Bar</h3>
+            <p>Klubová atmosféra, luxusní drinky a místo na nezapomenutelná setkání.</p>
+            <a class="btn btn--outline" href="bar.html">Přejít na bar</a>
+          </article>
+          <article class="card">
+            <h3>Dílna</h3>
+            <p>Servis, opravy, a špičkové tuningové možnosti</p>
+            <a class="btn btn--outline" href="dilna.html">Přejít do dílny</a>
+          </article>
+          <article class="card" data-role="admin" hidden>
+            <h3>Účty</h3>
+            <p>Účty, role, hesla a poznámky členů.</p>
+            <a class="btn btn--outline" href="ucty.html">Otevřít účty</a>
+          </article>
+          <article class="card" data-role="admin" hidden>
+            <h3>Účetnictví</h3>
+            <p>Finanční knihy klubu</p>
+            <a class="btn btn--outline" href="ucetnictvi.html">Přejít do účetnictví</a>
+          </article>
+          <article class="card" data-role="admin" hidden>
+            <h3>Nejvyšší správa</h3>
+            <p>ADMIN sekce, audit, editace</p>
+            <a class="btn btn--outline" href="admin.html">Otevřít správu</a>
+          </article>
+          <article class="card" data-role="member" hidden>
+            <h3>Members</h3>
+            <p>Profily členů, role a status v charteru.</p>
+            <a class="btn btn--outline" href="members.html">Přejít na members</a>
+          </article>
+          <article class="card">
+            <h3>Galerie</h3>
+            <p>Momenty z jízd, klubovny a dalších akcí</p>
+            <a class="btn btn--outline" href="gallery.html">Otevřít galerii</a>
+          </article>
+        </div>
+      </section>
+
+      <section class="section section--alt" data-role="member" hidden>
+        <div class="section__header">
+          <h2>Runbook charteru</h2>
+          <p>Interní postupy, náš kodex a zásady chování v klubu.</p>
+        </div>
+        <div class="grid grid--2">
+          <article class="card">
+            <h3>Řetězec velení (COC)</h3>
+            <p>
+              President → Vice P. → Sgt. at Arms → Road Captain. 
+              Každý musí vědět, s kým řešit co.
+            </p>
+            <a class="btn btn--outline" href="runbook.html#veleni">Otevřít sekci</a>
+          </article>
+          <article class="card">
+            <h3>Bezpečnostní protokoly</h3>
+            <p>
+                Zásady pro udržení pořádku a bezpečí našich členů v klubu, ale i na cestách
+            </p>
+            <a class="btn btn--outline" href="runbook.html#protokoly">Otevřít sekci</a>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section__header">
+          <h2>Naše složení a role</h2>
+          <p>Každý tvoříme část celku, každý má své poslání se kterým společně dosáhneme velkých věcí.</p>
+        </div>
+        <div class="grid grid--3">
+          <article class="card">
+            <h3>President</h3>
+            <p>Vedení klubu, rozhodování o strategických postupech a poslední slovo.</p>
+          </article>
+          <article class="card">
+            <h3>Sgt. at Arms</h3>
+            <p>Udržuje pořádek a dohlíží na disciplínu a vzájemný respekt, na kterým je náš klub založen.</p>
+          </article>
+          <article class="card">
+            <h3>Road Captain</h3>
+            <p>Plánuje trasy, logistiku a bezpečnost během jízd.</p>
+          </article>
+        </div>
+    </section>
+      <section class="section section--alt">
+        <div class="section__header">
+          <h2>Aktuální dění</h2>
+          <p>Co se děje v našich řadách a jaké výzvy nás čekají.</p>
+        </div>
+        <div class="grid grid--3">
+          <article class="card">
+            <h3>Otevření baru</h3>
+            <p class="big">Již brzy!</p>
+            <p class="muted">Bar je připraven k otevření, nyní se čeká pouze na licenci.</p>
+          </article>
+          <article class="card">
+            <h3>Otevření dílny</h3>
+            <p class="big">Již brzy!</p>
+            <p class="muted">V dílně se dokončují přípravy a potřebné dokumenty k otevření.</p>
+          </article>
+          <article class="card">
+            <h3>Účasti na akcích</h3>
+            <p class="big">Mnoho!</p>
+            <p class="muted">Provětráváme Nás i Naše motorky poměrně často, proto nás uvidíte na různých akcích.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div>
+        <strong>Sons of Anarchy</strong>
+        <p class="muted">Klub v Los Santos · Bratrství & Respekt</p>
+      </div>
+      <div class="footer-center">
+        <p class="muted">Vytvořil FL3XY s ❤️</p>
+      </div>
+      <div>
+        <p class="muted">Kontakt: mistrmara_</p>
+        <p class="muted">Telefonní číslo naleznete v kontaktech.</p>
+      </div>
+    </footer>
+
+    <div class="modal" id="roleModal" aria-hidden="true" role="dialog" aria-labelledby="roleTitle">
+      <div class="modal__card">
+        <div class="modal__header">
+          <h3 id="roleTitle">Přihlášení do účtu</h3>
+          <button class="icon-btn" id="closeRole" type="button" aria-label="Zavřít">×</button>
+        </div>
+        <form id="roleForm">
+          <label for="roleSelect">Role</label>
+          <select id="roleSelect">
+            <option value="member">Člen</option>
+            <option value="admin">Admin</option>
+          </select>
+          <label for="roleEmail">E-mail</label>
+          <input id="roleEmail" type="email" autocomplete="username" placeholder="Zadej e-mail" />
+          <label for="rolePassword">Heslo</label>
+          <input id="rolePassword" type="password" autocomplete="current-password" placeholder="Zadej heslo" required />
+          <p class="error" id="roleError" role="alert"></p>
+          <button class="btn" type="submit">Přihlásit</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal" id="announcementModal" aria-hidden="true" role="dialog" aria-labelledby="announcementModalTitle">
+      <div class="modal__card">
+        <div class="modal__header">
+          <h3 id="announcementModalTitle">Nová aktualita</h3>
+          <button class="icon-btn" id="closeAnnouncementModal" type="button" aria-label="Zavřít">×</button>
+        </div>
+        <form id="announcementForm" class="form">
+          <label for="announcementTitle">Titulek</label>
+          <input id="announcementTitle" type="text" placeholder="Např. Otevření baru" required />
+          <label for="announcementMessage">Text</label>
+          <input id="announcementMessage" type="text" placeholder="Krátká aktualita" required />
+          <label class="checkbox">
+            <input id="announcementActive" type="checkbox" checked /> Aktivní
+          </label>
+          <button class="btn" id="addAnnouncement" type="submit">Přidat aktualitu</button>
+        </form>
+      </div>
+    </div>
+
+    <script type="module" src="firebase.js"></script>
+    <script type="module" src="script.js"></script>
+  </body>
+</html>
