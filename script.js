@@ -1417,7 +1417,7 @@ const renderInventory = (soldMap = new Map()) => {
   }
 };
 
-const getDebts = () => {
+function getDebts() {
   const stored = localStorage.getItem(DEBTS_KEY);
   if (!stored) return [];
   try {
@@ -1427,12 +1427,12 @@ const getDebts = () => {
     localStorage.removeItem(DEBTS_KEY);
     return [];
   }
-};
+}
 
-const saveDebts = (items) => {
+function saveDebts(items) {
   localStorage.setItem(DEBTS_KEY, JSON.stringify(items));
   if (firebaseEnabled) firebaseStore.setDocValue(DEBTS_KEY, items).catch(() => {});
-};
+}
 
 const getDebtLabel = (type) => (type === "receivable" ? "Dluží nám" : "Naše dluhy");
 const getDebtPillClass = (type) =>
