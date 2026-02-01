@@ -17,7 +17,9 @@ const ROLE_EMAILS = {
 const getRoleEmail = (role) => ROLE_EMAILS[role] || ROLE_EMAILS.member;
 const inferRoleFromEmail = (email = "") => {
   const normalized = email.toLowerCase();
-  if (normalized === ROLE_EMAILS.admin) return "admin";
+  if (Array.isArray(ROLE_EMAILS.admin) && ROLE_EMAILS.admin.map((item) => item.toLowerCase()).includes(normalized)) {
+    return "admin";
+  }
   if (normalized === ROLE_EMAILS.member) return "member";
   return "member";
 };
@@ -1774,13 +1776,34 @@ function getAccounts() {
   if (!stored) return [];
   try {
     const parsed = JSON.parse(stored);
+    const isAccountLike = (value) =>
+      value &&
+      typeof value === "object" &&
+      ("name" in value || "role" in value || "password" in value || "email" in value);
+    const asArray = (value) => (Array.isArray(value) ? value : []);
+    const asValues = (value) => (value && typeof value === "object" ? Object.values(value) : []);
+
     if (Array.isArray(parsed)) return parsed;
+
     if (parsed && typeof parsed === "object") {
       if (Array.isArray(parsed.items)) return parsed.items;
       if (Array.isArray(parsed.accounts)) return parsed.accounts;
-      const values = Object.values(parsed);
-      return values.every((value) => typeof value === "object") ? values : [];
+      if (Array.isArray(parsed.value)) return parsed.value;
+      if (Array.isArray(parsed.data)) return parsed.data;
+      if (Array.isArray(parsed.list)) return parsed.list;
+      if (Array.isArray(parsed.users)) return parsed.users;
+
+      if (parsed.value && typeof parsed.value === "object") {
+        const nestedValues = asValues(parsed.value);
+        if (nestedValues.every(isAccountLike)) return nestedValues;
+      }
+
+      const values = asValues(parsed);
+      if (values.every(isAccountLike)) return values;
+      const arrayCandidate = values.find((value) => Array.isArray(value) && value.every(isAccountLike));
+      if (arrayCandidate) return arrayCandidate;
     }
+
     return [];
   } catch {
     localStorage.removeItem(ACCOUNTS_KEY);
