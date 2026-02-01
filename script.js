@@ -93,6 +93,7 @@ const editToggle = document.getElementById("toggleEdit");
 const saveEdits = document.getElementById("saveEdits");
 const resetEdits = document.getElementById("resetEdits");
 const addTransaction = document.getElementById("addTransaction");
+const transactionFilter = document.getElementById("transactionFilter");
 const transactionBody = document.getElementById("transactionBody");
 const totalIncome = document.querySelector("[data-total='income']");
 const totalExpenses = document.querySelector("[data-total='expenses']");
@@ -257,10 +258,15 @@ const debtTotalOwed = document.querySelector("[data-debt-total='owed']");
 const debtTotalReceivable = document.querySelector("[data-debt-total='receivable']");
 const debtTotalNet = document.querySelector("[data-debt-total='net']");
 
+const setModalOpenState = (isOpen) => {
+  document.body.classList.toggle("modal-open", Boolean(isOpen));
+};
+
 const showModal = () => {
   if (!loginModal) return;
   loginModal.classList.add("show");
   loginModal.setAttribute("aria-hidden", "false");
+  setModalOpenState(true);
   if (loginError) loginError.textContent = "";
   if (adminEmail) adminEmail.value = "";
   if (adminPassword) adminPassword.value = "";
@@ -271,6 +277,7 @@ const hideModal = () => {
   if (!loginModal) return;
   loginModal.classList.remove("show");
   loginModal.setAttribute("aria-hidden", "true");
+  setModalOpenState(false);
 };
 
 
@@ -304,6 +311,7 @@ const showRoleModal = () => {
   if (!roleModal) return;
   roleModal.classList.add("show");
   roleModal.setAttribute("aria-hidden", "false");
+  setModalOpenState(true);
   if (roleError) roleError.textContent = "";
   if (roleEmail) roleEmail.value = "";
   if (rolePassword) rolePassword.value = "";
@@ -314,6 +322,7 @@ const hideRoleModal = () => {
   if (!roleModal) return;
   roleModal.classList.remove("show");
   roleModal.setAttribute("aria-hidden", "true");
+  setModalOpenState(false);
 };
 
 const setRole = (role, name = "") => {
@@ -665,6 +674,12 @@ const getStoredTransactions = () => {
   }
 };
 
+const filterTransactions = (rows) => {
+  const filter = transactionFilter?.value || "all";
+  if (filter === "all") return rows;
+  return rows.filter((row) => getSectionType(row.section) === filter);
+};
+
 const saveTransactions = (rows) => {
   localStorage.setItem(TX_KEY, JSON.stringify(rows));
   if (firebaseEnabled) firebaseStore.setDocValue(TX_KEY, rows).catch(() => {});
@@ -708,7 +723,7 @@ const buildTransactionRow = (row, readOnly = false, index = 0) => {
 
 const renderTransactions = (readOnly = false) => {
   if (!transactionBody) return;
-  const rows = getStoredTransactions();
+  const rows = filterTransactions(getStoredTransactions());
   transactionBody.innerHTML = "";
   rows.forEach((row, index) => {
     transactionBody.appendChild(buildTransactionRow(row, readOnly, index));
@@ -1568,6 +1583,7 @@ const openDebtModal = (item = null, index = null) => {
   if (!debtModal) return;
   debtModal.classList.add("show");
   debtModal.setAttribute("aria-hidden", "false");
+  setModalOpenState(true);
   if (debtTitle) debtTitle.textContent = item ? "Upravit dluh" : "Nový dluh";
   if (debtForm) {
     if (index !== null && index !== undefined) debtForm.dataset.editIndex = String(index);
@@ -1608,6 +1624,7 @@ const closeDebtModal = () => {
   if (!debtModal) return;
   debtModal.classList.remove("show");
   debtModal.setAttribute("aria-hidden", "true");
+  setModalOpenState(false);
 };
 
 
@@ -1656,10 +1673,15 @@ transactionBody?.addEventListener("change", (event) => {
   recalcTotals();
 });
 
+transactionFilter?.addEventListener("change", () => {
+  renderTransactions(!isAdminRole());
+});
+
 addTransaction?.addEventListener("click", () => {
   if (!transactionModal) return;
   transactionModal.classList.add("show");
   transactionModal.setAttribute("aria-hidden", "false");
+  setModalOpenState(true);
   if (txDate) txDate.value = new Date().toISOString().slice(0, 10);
   if (txSection) txSection.value = "Bar";
   if (txType) txType.value = "Příjem";
@@ -1676,12 +1698,14 @@ addTransaction?.addEventListener("click", () => {
 closeTransaction?.addEventListener("click", () => {
   transactionModal?.classList.remove("show");
   transactionModal?.setAttribute("aria-hidden", "true");
+  setModalOpenState(false);
 });
 
 transactionModal?.addEventListener("click", (event) => {
   if (event.target === transactionModal) {
     transactionModal.classList.remove("show");
     transactionModal.setAttribute("aria-hidden", "true");
+    setModalOpenState(false);
   }
 });
 
@@ -1733,6 +1757,7 @@ transactionForm?.addEventListener("submit", (event) => {
   recalcTotals();
   transactionModal?.classList.remove("show");
   transactionModal?.setAttribute("aria-hidden", "true");
+  setModalOpenState(false);
 });
 
 addDebt?.addEventListener("click", () => {
@@ -1849,12 +1874,14 @@ const closeAnnouncementModalHandler = () => {
   if (!announcementModal) return;
   announcementModal.classList.remove("show");
   announcementModal.setAttribute("aria-hidden", "true");
+  setModalOpenState(false);
 };
 
 const openAnnouncementModalHandler = (reset = true) => {
   if (!announcementModal) return;
   announcementModal.classList.add("show");
   announcementModal.setAttribute("aria-hidden", "false");
+  setModalOpenState(true);
   if (reset) {
     if (announcementTitle) announcementTitle.value = "";
     if (announcementMessage) announcementMessage.value = "";
