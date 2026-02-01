@@ -668,6 +668,11 @@ const saveTransactions = (rows) => {
   if (firebaseEnabled) firebaseStore.setDocValue(TX_KEY, rows).catch(() => {});
 };
 
+function loadTransactions() {
+  renderTransactions(!isAdminRole());
+  recalcTotals();
+}
+
 const buildTransactionRow = (row, readOnly = false, index = 0) => {
   const id = `t${index}-${Date.now()}`;
   const tr = document.createElement("tr");
