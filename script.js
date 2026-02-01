@@ -1458,7 +1458,7 @@ const updateDebtTotals = (items) => {
   if (debtTotalNet) debtTotalNet.textContent = formatCurrency(receivable - owed);
 };
 
-const renderDebts = (readOnly = false) => {
+function renderDebts(readOnly = false) {
   if (!debtTableBody) return;
   const items = getDebts();
   if (!items.length) {
@@ -1501,7 +1501,7 @@ const renderDebts = (readOnly = false) => {
     })
     .join("");
   updateDebtTotals(items);
-};
+}
 
 const updateDebtTotalPreview = () => {
   if (!debtPrincipal || !debtInterestRate || !debtInterestAmount || !debtTotal) return;
