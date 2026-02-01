@@ -481,6 +481,11 @@
           <input id="debtReason" type="text" placeholder="Např. půjčka na vybavení" />
           <label for="debtPrincipal">Jistina</label>
           <input id="debtPrincipal" type="number" min="0" step="1" placeholder="0" />
+          <label for="debtInterestMode">Výpočet úroku</label>
+          <select id="debtInterestMode">
+            <option value="auto">Automaticky (ročně)</option>
+            <option value="manual">Ručně (částka)</option>
+          </select>
           <label for="debtInterestRate">Úrok %</label>
           <input id="debtInterestRate" type="number" min="0" step="0.1" placeholder="0" />
           <label for="debtInterestAmount">Úrok částka</label>
@@ -491,6 +496,8 @@
           <input id="debtStartDate" type="date" />
           <label for="debtDueDate">Splatnost</label>
           <input id="debtDueDate" type="date" />
+          <label for="debtLateRate">Penále po splatnosti (% denně)</label>
+          <input id="debtLateRate" type="number" min="0" step="0.01" placeholder="0" />
           <label for="debtStatus">Stav</label>
           <select id="debtStatus">
             <option value="open">Aktivní</option>
@@ -524,4 +531,3 @@
     <script type="module" src="script.js"></script>
   </body>
 </html>
-
