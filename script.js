@@ -236,6 +236,7 @@ const txAmount = document.getElementById("txAmount");
 const txEntered = document.getElementById("txEntered");
 const txApprove = document.getElementById("txApprove");
 const addDebt = document.getElementById("addDebt");
+const debtsSection = document.getElementById("debtsSection");
 const debtTableBody = document.getElementById("debtTableBody");
 const debtModal = document.getElementById("debtModal");
 const debtTitle = document.getElementById("debtTitle");
@@ -397,6 +398,7 @@ const applyAccountingAccess = (role) => {
 
   renderTransactions(role !== "admin");
   if (addDebt) addDebt.hidden = role !== "admin";
+  if (debtsSection) debtsSection.hidden = role !== "admin";
   renderDebts(role !== "admin");
 };
 
