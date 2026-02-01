@@ -190,7 +190,7 @@
             </div>
           </div>
 
-         <div class="card card--wide" id="debtsSection">
+         <div class="card card--wide">
             <h4>Nejvýdělečnější zaměstnanec</h4>
             <div class="top-performer">
               <div>
@@ -205,7 +205,7 @@
             <div class="audit-list" id="topEarners"></div>
           </div>
 
-          <div class="card card--wide">
+          <div class="card card--wide" id="debtsSection">
             <h4>Transakce</h4>
             <div class="transaction-tools">
               <div class="transaction-filters">
@@ -463,6 +463,13 @@
           <input id="txCharterDesc" type="text" placeholder="Např. dar" style="display: none;" />
           <label for="txQty">Ks</label>
           <input id="txQty" type="number" min="0" value="1" />
+          <div class="extra-items" id="txExtraItems">
+            <div class="extra-items__header">
+              <span class="muted">Další položky objednávky</span>
+              <button class="btn btn--ghost btn--xs" id="addTxItem" type="button">Přidat položku</button>
+            </div>
+            <div class="extra-items__list" id="txItemsList"></div>
+          </div>
           <label for="txAmount">Částka</label>
           <input id="txAmount" type="text" readonly />
           <label for="txEntered">Zadal</label>
@@ -542,4 +549,5 @@
     <script type="module" src="script.js"></script>
   </body>
 </html>
+
 
