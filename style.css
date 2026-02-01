@@ -1332,6 +1332,32 @@ img {
   justify-content: flex-end;
 }
 
+.transaction-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.transaction-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.transaction-filters label {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.filter-select {
+  min-width: 180px;
+  margin-bottom: 0;
+}
+
 .editable {
   outline: 1px dashed transparent;
   padding: 4px;
