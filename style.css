@@ -357,6 +357,12 @@ img {
   box-shadow: none;
 }
 
+.btn--xs {
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
 .hero__content {
   max-width: var(--max-width);
   margin: 60px auto 0;
@@ -1364,6 +1370,58 @@ td {
   padding: 12px 10px;
   text-align: left;
   border-bottom: 1px solid rgba(215, 194, 163, 0.12);
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.debt-table th,
+.debt-table td {
+  vertical-align: top;
+}
+
+.debt-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 1px solid rgba(215, 194, 163, 0.2);
+  color: var(--muted);
+  background: rgba(215, 194, 163, 0.08);
+}
+
+.debt-pill--owed {
+  border-color: rgba(192, 98, 98, 0.6);
+  background: rgba(192, 98, 98, 0.18);
+  color: #f4c7c7;
+}
+
+.debt-pill--receivable {
+  border-color: rgba(120, 176, 135, 0.5);
+  background: rgba(120, 176, 135, 0.18);
+  color: #c5e9cf;
+}
+
+.debt-status--paid {
+  border-color: rgba(120, 176, 135, 0.5);
+  background: rgba(120, 176, 135, 0.18);
+  color: #c5e9cf;
+}
+
+.debt-status--open {
+  border-color: rgba(215, 194, 163, 0.35);
+  background: rgba(215, 194, 163, 0.08);
+  color: var(--accent);
+}
+
+.table-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .footer {
