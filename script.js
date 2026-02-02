@@ -232,6 +232,7 @@ const txItem = document.getElementById("txItem");
 const txCharterLabel = document.getElementById("txCharterLabel");
 const txCharterDesc = document.getElementById("txCharterDesc");
 const txQty = document.getElementById("txQty");
+const txQtyLabel = document.querySelector("label[for='txQty']");
 const txExtraItems = document.getElementById("txExtraItems");
 const txItemsList = document.getElementById("txItemsList");
 const addTxItem = document.getElementById("addTxItem");
@@ -955,12 +956,12 @@ const getItemValueFromRow = (row) => {
 };
 
 const buildItemCellContent = (sectionType, itemValue, readOnly = false) => {
-  if (sectionType === "charter") {
+  if (sectionType !== "bar") {
     const readonlyAttr = readOnly ? "readonly disabled" : "";
-    return `<input class="item-input" type="text" data-item-input placeholder="Popis platby" value="${itemValue || ""}" ${readonlyAttr} />`;
+    const placeholder = sectionType === "workshop" ? "Název položky" : "Popis platby";
+    return `<input class="item-input" type="text" data-item-input placeholder="${placeholder}" value="${itemValue || ""}" ${readonlyAttr} />`;
   }
-  const items = sectionType === "workshop" ? WORKSHOP_ITEMS : MENU_ITEMS;
-  const options = ["—", ...items]
+  const options = ["—", ...MENU_ITEMS]
     .map((item) => {
       const selected = item === (itemValue || "—") ? "selected" : "";
       return `<option value="${item}" ${selected}>${item}</option>`;
@@ -982,8 +983,7 @@ const updateItemCellForRow = (row) => {
   itemCell.innerHTML = buildItemCellContent(sectionType, currentValue, readOnly);
 };
 
-const getItemsForSectionType = (sectionType) =>
-  sectionType === "workshop" ? WORKSHOP_ITEMS : MENU_ITEMS;
+const getItemsForSectionType = () => MENU_ITEMS;
 
 const buildItemOptions = (items, selected) =>
   ["—", ...items]
@@ -1037,7 +1037,7 @@ const resetExtraItems = () => {
 };
 
 const getModalItems = (sectionType) => {
-  if (sectionType === "charter") return [];
+  if (sectionType !== "bar") return [];
   const items = [];
   const baseItem = txItem?.value || "—";
   const baseQty = Number(txQty?.value || 0);
@@ -1062,29 +1062,33 @@ const getModalItems = (sectionType) => {
 const updateModalItemControl = () => {
   if (!txSection) return;
   const sectionType = getSectionType(txSection.value || "");
-  const showCharter = sectionType === "charter";
+  const isBar = sectionType === "bar";
   if (txItemLabel) {
-    txItemLabel.textContent = sectionType === "workshop" ? "Dílna položka" : "Menu item";
-    txItemLabel.style.display = showCharter ? "none" : "block";
+    txItemLabel.textContent = "Menu item";
+    txItemLabel.style.display = isBar ? "block" : "none";
   }
-  if (txItem) txItem.style.display = showCharter ? "none" : "block";
-  if (txCharterLabel) txCharterLabel.style.display = showCharter ? "block" : "none";
-  if (txCharterDesc) txCharterDesc.style.display = showCharter ? "block" : "none";
+  if (txItem) txItem.style.display = isBar ? "block" : "none";
+  if (txCharterLabel) {
+    txCharterLabel.textContent = sectionType === "workshop" ? "Název položky" : "Popis platby";
+    txCharterLabel.style.display = isBar ? "none" : "block";
+  }
+  if (txCharterDesc) txCharterDesc.style.display = isBar ? "none" : "block";
+  if (txQtyLabel) txQtyLabel.style.display = isBar ? "block" : "none";
+  if (txQty) txQty.style.display = isBar ? "block" : "none";
   if (txAmount) {
-    txAmount.readOnly = !showCharter;
-    if (showCharter && !txAmount.value) txAmount.value = "";
+    txAmount.readOnly = isBar;
+    if (!isBar && !txAmount.value) txAmount.value = "";
   }
 
-  if (!showCharter && txItem) {
-    const items = sectionType === "workshop" ? WORKSHOP_ITEMS : MENU_ITEMS;
+  if (isBar && txItem) {
     const current = txItem.value || "—";
-    txItem.innerHTML = ["—", ...items]
+    txItem.innerHTML = ["—", ...MENU_ITEMS]
       .map((item) => `<option value="${item}" ${item === current ? "selected" : ""}>${item}</option>`)
       .join("");
   }
 
-  if (txExtraItems) txExtraItems.style.display = showCharter ? "none" : "grid";
-  if (showCharter) {
+  if (txExtraItems) txExtraItems.style.display = isBar ? "grid" : "none";
+  if (!isBar) {
     resetExtraItems();
   } else {
     updateExtraItemsOptions(sectionType);
@@ -1094,7 +1098,7 @@ const updateModalItemControl = () => {
 const updateModalAmount = () => {
   if (!txAmount || !txQty || !txType || !txSection) return;
   const sectionType = getSectionType(txSection.value || "");
-  if (sectionType === "charter") return;
+  if (sectionType !== "bar") return;
   const items = getModalItems(sectionType);
   const total = items.reduce((sum, item) => sum + getPrice(item.item) * item.qty, 0);
   const signed = txType.value === "Výdaj" ? -total : total;
@@ -1773,7 +1777,7 @@ const updateRowAmount = (row) => {
   if (!itemSelect || !qtyInput || !amountCell) return;
   const sectionCell = row.children[2];
   const sectionType = getSectionType(sectionCell?.textContent || "");
-  if (sectionType === "charter") return;
+  if (sectionType !== "bar") return;
   const price = getPrice(itemSelect.value);
   const qty = Number(qtyInput.value || 0);
   const total = qty * price;
@@ -1865,17 +1869,17 @@ transactionForm?.addEventListener("submit", (event) => {
   const id = `t${Date.now()}`;
   const sectionValue = txSection?.value || "Charter";
   const sectionType = getSectionType(sectionValue);
-  const isCharter = sectionType === "charter";
-  const items = isCharter ? [] : getModalItems(sectionType);
-  const itemValue = isCharter ? txCharterDesc?.value?.trim() || "" : (items[0]?.item || "—");
-  const qty = isCharter ? 0 : (items[0]?.qty || 0);
-  const total = isCharter
-    ? 0
-    : items.reduce((sum, item) => sum + getPrice(item.item) * item.qty, 0);
+  const isBar = sectionType === "bar";
+  const items = isBar ? getModalItems(sectionType) : [];
+  const itemValue = isBar ? (items[0]?.item || "—") : (txCharterDesc?.value?.trim() || "");
+  const qty = isBar ? (items[0]?.qty || 0) : Number(txQty?.value || 0);
+  const total = isBar
+    ? items.reduce((sum, item) => sum + getPrice(item.item) * item.qty, 0)
+    : 0;
   const signed = txType?.value === "Výdaj" ? -total : total;
-  const amountText = isCharter
-    ? (txAmount?.value?.trim() || "")
-    : formatCurrency(signed);
+  const amountText = isBar
+    ? formatCurrency(signed)
+    : (txAmount?.value?.trim() || "");
 
   const roleName = sessionStorage.getItem(ROLE_NAME_KEY) || (isAdminRole() ? "Admin" : "Člen");
   const transaction = {
@@ -1895,9 +1899,7 @@ transactionForm?.addEventListener("submit", (event) => {
   existing.unshift(transaction);
   saveTransactions(existing);
 
-  const row = buildTransactionRow(transaction, !isAdminRole(), 0);
-  transactionBody.prepend(row);
-  updateItemCellForRow(row);
+  renderTransactions(!isAdminRole());
 
   if (isAdminRole()) setEditingState(true);
   addAudit("Přidána nová transakce");
