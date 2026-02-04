@@ -1876,7 +1876,12 @@ addTxItem?.addEventListener("click", () => {
 transactionForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   if (!transactionBody) return;
-  if (!getCurrentRole()) return;
+  const currentRole = getCurrentRole();
+  const hasAccess = Boolean(currentRole) || sessionStorage.getItem(STORAGE_KEY) === "true";
+  if (!hasAccess) {
+    showRoleModal();
+    return;
+  }
   const id = `t${Date.now()}`;
   const sectionValue = txSection?.value || "Charter";
   const sectionType = getSectionType(sectionValue);
@@ -1890,7 +1895,8 @@ transactionForm?.addEventListener("submit", (event) => {
   const signed = isExpense ? -total : total + tipValue;
   const amountText = isBar ? formatCurrency(signed) : (txAmount?.value?.trim() || "");
 
-  const roleName = sessionStorage.getItem(ROLE_NAME_KEY) || (isAdminRole() ? "Admin" : "Člen");
+  const roleName = sessionStorage.getItem(ROLE_NAME_KEY)
+    || (isAdminRole() ? "Admin" : (sessionStorage.getItem(STORAGE_KEY) === "true" ? "Admin" : "Člen"));
   const transaction = {
     date: txDate?.value || "",
     desc: txDesc?.value || "",
@@ -2651,6 +2657,7 @@ menuGrid?.addEventListener("click", (event) => {
 });
 
 updateOrderSummary();
+
 
 
 
