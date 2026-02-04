@@ -470,6 +470,16 @@
             </div>
             <div class="extra-items__list" id="txItemsList"></div>
           </div>
+          <div class="extra-items" id="txTipRow">
+            <div class="extra-items__header" style="align-items: center;">
+              <span class="muted">Dýško</span>
+              <button class="btn btn--ghost btn--xs" id="txTipButton" type="button">Dýško +10%</button>
+            </div>
+            <div class="extra-items__list" style="display: grid; gap: 8px;">
+              <label for="txTipAmount" class="muted">Částka dýška</label>
+              <input id="txTipAmount" type="number" min="0" step="1" value="0" />
+            </div>
+          </div>
           <label for="txAmount">Částka</label>
           <input id="txAmount" type="text" readonly />
           <label for="txEntered">Zadal</label>
@@ -549,6 +559,7 @@
     <script type="module" src="script.js"></script>
   </body>
 </html>
+
 
 
 
