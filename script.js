@@ -1884,7 +1884,7 @@ transactionForm?.addEventListener("submit", (event) => {
   const items = isBar ? getModalItems(sectionType) : [];
   const itemValue = isBar ? (items[0]?.item || "—") : (txCharterDesc?.value?.trim() || "");
   const qty = isBar ? (items[0]?.qty || 0) : Number(txQty?.value || 0);
-  cconst total = isBar ? getBaseBarTotal() : 0;
+  const total = isBar ? getBaseBarTotal() : 0;
   const isExpense = txType?.value === "Výdaj";
   const tipValue = isBar && !isExpense ? Math.max(0, Number(txTipAmount?.value || 0)) : 0;
   const signed = isExpense ? -total : total + tipValue;
@@ -2651,5 +2651,6 @@ menuGrid?.addEventListener("click", (event) => {
 });
 
 updateOrderSummary();
+
 
 
