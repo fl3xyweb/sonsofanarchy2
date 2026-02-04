@@ -236,6 +236,9 @@ const txQtyLabel = document.querySelector("label[for='txQty']");
 const txExtraItems = document.getElementById("txExtraItems");
 const txItemsList = document.getElementById("txItemsList");
 const addTxItem = document.getElementById("addTxItem");
+const txTipRow = document.getElementById("txTipRow");
+const txTipButton = document.getElementById("txTipButton");
+const txTipAmount = document.getElementById("txTipAmount");
 const txAmount = document.getElementById("txAmount");
 const txEntered = document.getElementById("txEntered");
 const txApprove = document.getElementById("txApprove");
@@ -1828,6 +1831,7 @@ addTransaction?.addEventListener("click", () => {
   if (txCharterDesc) txCharterDesc.value = "";
   if (txQty) txQty.value = "1";
   resetExtraItems();
+  resetTipAmount();
   if (txEntered) txEntered.value = "";
   if (txApprove) txApprove.value = "";
   updateModalItemControl();
@@ -1848,9 +1852,16 @@ transactionModal?.addEventListener("click", (event) => {
   }
 });
 
-[txType, txItem, txQty].forEach((el) => el?.addEventListener("input", updateModalAmount));
+[txType, txItem, txQty, txTipAmount].forEach((el) => el?.addEventListener("input", updateModalAmount));
 txSection?.addEventListener("change", () => {
   updateModalItemControl();
+  updateModalAmount();
+});
+
+txTipButton?.addEventListener("click", () => {
+  const baseTotal = getBaseBarTotal();
+  if (!txTipAmount) return;
+  txTipAmount.value = String(Math.round(baseTotal * 0.1));
   updateModalAmount();
 });
 
@@ -2642,3 +2653,4 @@ menuGrid?.addEventListener("click", (event) => {
 });
 
 updateOrderSummary();
+
