@@ -223,6 +223,7 @@ const accountManagementLock = document.getElementById("accountManagementLock");
 const transactionModal = document.getElementById("transactionModal");
 const closeTransaction = document.getElementById("closeTransaction");
 const transactionForm = document.getElementById("transactionForm");
+if (transactionForm) transactionForm.noValidate = true;
 const txDate = document.getElementById("txDate");
 const txSection = document.getElementById("txSection");
 const txType = document.getElementById("txType");
@@ -1039,6 +1040,10 @@ const resetExtraItems = () => {
   if (txItemsList) txItemsList.innerHTML = "";
 };
 
+const resetTipAmount = () => {
+  if (txTipAmount) txTipAmount.value = "0";
+};
+
 const getModalItems = (sectionType) => {
   if (sectionType !== "bar") return [];
   const items = [];
@@ -1098,13 +1103,22 @@ const updateModalItemControl = () => {
   }
 };
 
+const getBaseBarTotal = () => {
+  const sectionType = getSectionType(txSection?.value || "");
+  if (sectionType !== "bar") return 0;
+  const items = getModalItems(sectionType);
+  return items.reduce((sum, item) => sum + getPrice(item.item) * item.qty, 0);
+};
+
 const updateModalAmount = () => {
   if (!txAmount || !txQty || !txType || !txSection) return;
   const sectionType = getSectionType(txSection.value || "");
   if (sectionType !== "bar") return;
-  const items = getModalItems(sectionType);
-  const total = items.reduce((sum, item) => sum + getPrice(item.item) * item.qty, 0);
-  const signed = txType.value === "Výdaj" ? -total : total;
+  const total = getBaseBarTotal();
+  const isExpense = txType.value === "Výdaj";
+  const tipValue = isExpense ? 0 : Math.max(0, Number(txTipAmount?.value || 0));
+  if (isExpense && txTipAmount) txTipAmount.value = "0";
+  const signed = isExpense ? -total : total + tipValue;
   txAmount.value = formatCurrency(signed);
 };
 
