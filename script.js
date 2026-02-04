@@ -1884,13 +1884,11 @@ transactionForm?.addEventListener("submit", (event) => {
   const items = isBar ? getModalItems(sectionType) : [];
   const itemValue = isBar ? (items[0]?.item || "—") : (txCharterDesc?.value?.trim() || "");
   const qty = isBar ? (items[0]?.qty || 0) : Number(txQty?.value || 0);
-  const total = isBar
-    ? items.reduce((sum, item) => sum + getPrice(item.item) * item.qty, 0)
-    : 0;
-  const signed = txType?.value === "Výdaj" ? -total : total;
-  const amountText = isBar
-    ? formatCurrency(signed)
-    : (txAmount?.value?.trim() || "");
+  cconst total = isBar ? getBaseBarTotal() : 0;
+  const isExpense = txType?.value === "Výdaj";
+  const tipValue = isBar && !isExpense ? Math.max(0, Number(txTipAmount?.value || 0)) : 0;
+  const signed = isExpense ? -total : total + tipValue;
+  const amountText = isBar ? formatCurrency(signed) : (txAmount?.value?.trim() || "");
 
   const roleName = sessionStorage.getItem(ROLE_NAME_KEY) || (isAdminRole() ? "Admin" : "Člen");
   const transaction = {
@@ -2653,4 +2651,5 @@ menuGrid?.addEventListener("click", (event) => {
 });
 
 updateOrderSummary();
+
 
